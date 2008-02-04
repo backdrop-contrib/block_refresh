@@ -11,13 +11,10 @@ function block_refresh_data(timer_delay, url) {
 
 // set the timer on or off
 function block_refresh_timer(div) {
-  // stop the current timer
-  clearTimeout(_block_refresh_data[div]._timer_id);
-  _block_refresh_data[div]._timer_id = setTimeout("block_refresh('" + div + "')", _block_refresh_data[div]._timer_delay);
+   _block_refresh_data[div]._timer_id = setInterval("block_refresh('" + div + "')", _block_refresh_data[div]._timer_delay);
 }
 
 function block_refresh(div) {
   $(div).load(_block_refresh_data[div]._url);
-  block_refresh_timer(div);
 }
 

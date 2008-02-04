@@ -1,6 +1,7 @@
 // $Id$
 
 2008-02-04
+automatic refresh js working
 begin js
 add callback for block_refresh/$block/$delta
 add settings form to block admin forms

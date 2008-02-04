@@ -47,6 +47,7 @@ function block_refresh_submit($form_id, $edit) {
   $settings['block-' . $edit['module'] . '-' . $edit['delta']]['enabled'] = $edit['block_refresh_enable'];
   $settings['block-' . $edit['module'] . '-' . $edit['delta']]['manual'] = $edit['block_refresh_manual'];
   $settings['block-' . $edit['module'] . '-' . $edit['delta']]['timer'] = $edit['block_refresh_timer'];
+  $settings['block-' . $edit['module'] . '-' . $edit['delta']]['block'] = array('block' => $edit['module'], 'delta' => $edit['delta']);
   variable_set('block_refresh_settings', $settings);
 }
 
@@ -76,3 +77,23 @@ function block_refresh_block_content($block = NULL, $delta = NULL) {
   print $block['content'];
   exit();
 }
+
+function block_refresh_footer() {
+  $settings = variable_get('block_refresh_settings', array());
+  foreach ($settings as $block) {
+    if ($block['enabled']) {
+      $add = TRUE;
+      $div = "#block-{$block['block']['block']}-{$block['block']['delta']} .content";
+      $timer = $block['timer'] * 1000;
+      $base = base_path();
+      $js .= "  _block_refresh_data['$div'] = new block_refresh_data({$timer}, '{$base}block_refresh/{$block['block']['block']}/{$block['block']['delta']}');\n";
+      $js .= "  block_refresh_timer('$div');";
+    }
+  }
+  if ($js) {
+    drupal_add_js(drupal_get_path('module', 'block_refresh') .'/js/block_refresh.js');
+    $js = "$(document).ready(function() {\n$js\n})";
+    drupal_add_js($js, 'inline');
+  }
+}
+
