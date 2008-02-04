@@ -1,0 +1,78 @@
+<?php
+// $Id$
+
+define('BLOCK_REFRESH_AUTOREFRESH_DEFAULT_ENABLE', FALSE); // autorefresh disabled by default
+define('BLOCK_REFRESH_AUTOREFRESH_DEFAULT_MANUAL', FALSE); // manual refresh disabled by default
+define('BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER', 5);  // default refreshes every 5 seconds, if enabled
+
+/**
+ *  Add a 'Block Refresh' settings fieldset to the block admin form
+ */
+function block_refresh_form_alter($form_id, &$form) {
+  if ($form_id == 'block_admin_configure') {
+    $settings = variable_get('block_refresh_settings', array());
+    $form['#submit']['block_refresh_submit'] = array();
+    $form['block_refresh'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Block refresh settings'),
+      '#collapsible' => true,
+      '#weight' => -5
+    );
+    $form['block_refresh']['block_refresh_enable'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable block autorefresh'),
+      '#description' => t('If checked, then the content of this block may be autorefreshed automatically on a timer.'),
+      '#default_value' => $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['enabled'] ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['enabled'] : variable_get('block_refresh_autorefresh_default_enable', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_ENABLE),
+    );
+    $form['block_refresh']['block_refresh_manual'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable block manual refresh'),
+      '#description' => t('If checked, then the content of this block may be refreshed manually by the user, by clicking on a provided (themable) button in the block\'s subject header.'),
+      '#default_value' => $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] : variable_get('block_refresh_manual_refresh_default_enable', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_MANUAL),
+    );
+    $form['block_refresh']['block_refresh_timer'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Block refresh timer'),
+      '#description' => t('Assuming that Blox Autorefresh is enabled, then the content of this block will refresh itself periodically, every number of seconds equal to this setting.'),
+      '#default_value' => $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer'] ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer'] : variable_get('block_refresh_autorefresh_default_timer', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER),
+    );
+  }
+}
+
+/**
+ *  handle submission of block refresh form on block settings page
+ */
+function block_refresh_submit($form_id, $edit) {
+  $settings = variable_get('block_refresh_settings', array());
+  $settings['block-' . $edit['module'] . '-' . $edit['delta']]['enabled'] = $edit['block_refresh_enable'];
+  $settings['block-' . $edit['module'] . '-' . $edit['delta']]['manual'] = $edit['block_refresh_manual'];
+  $settings['block-' . $edit['module'] . '-' . $edit['delta']]['timer'] = $edit['block_refresh_timer'];
+  variable_set('block_refresh_settings', $settings);
+}
+
+function block_refresh_menu($may_cache) {
+  $items = array();
+  if ($may_cache) {
+    $items[] = array(
+      'path' => 'block_refresh',
+      'type' => MENU_CALLBACK,
+      'access' => user_access('access content'),
+      'callback' => 'block_refresh_block_content',
+      'title' => t('Block refresh block content'),
+    );
+  }
+  return $items;
+}
+
+function block_refresh_block_content($block = NULL, $delta = NULL) {
+  if (!isset($block) || !isset($delta) || !module_implements($block, 'block')) {
+    drupal_not_found();
+  }
+  $settings = variable_get('block_refresh_settings', array());
+  if (!$settings['block-' . $block . '-' . $delta]['enabled'] && !$settings['block-' . $block . '-' . $delta]['manual']) {
+    drupal_not_found();
+  }
+  $block = module_invoke($block, 'block', 'view', $delta);
+  print $block['content'];
+  exit();
+}
