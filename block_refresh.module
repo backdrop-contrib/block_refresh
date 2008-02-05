@@ -3,7 +3,7 @@
 
 define('BLOCK_REFRESH_AUTOREFRESH_DEFAULT_ENABLE', FALSE); // autorefresh disabled by default
 define('BLOCK_REFRESH_AUTOREFRESH_DEFAULT_MANUAL', FALSE); // manual refresh disabled by default
-define('BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER', 5);  // default refreshes every 5 seconds, if enabled
+define('BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER', 120);  // default refreshes every two minutes, if enabled
 
 /**
  *  Add a 'Block Refresh' settings fieldset to the block admin form
@@ -51,9 +51,13 @@ function block_refresh_submit($form_id, $edit) {
   variable_set('block_refresh_settings', $settings);
 }
 
+/**
+ *  implements hook_menu
+ */
 function block_refresh_menu($may_cache) {
   $items = array();
   if ($may_cache) {
+    // this will display the contents of a block, if it's enabled
     $items[] = array(
       'path' => 'block_refresh',
       'type' => MENU_CALLBACK,
@@ -65,6 +69,10 @@ function block_refresh_menu($may_cache) {
   return $items;
 }
 
+/**
+ *  page callback for /block_refresh/[module]/[delta]
+ *  displays the block content, without any other page information
+ */
 function block_refresh_block_content($block = NULL, $delta = NULL) {
   if (!isset($block) || !isset($delta) || !module_implements($block, 'block')) {
     drupal_not_found();
@@ -78,22 +86,76 @@ function block_refresh_block_content($block = NULL, $delta = NULL) {
   exit();
 }
 
+/**
+ *  implements hook_footer
+ *  calls the jquery to refresh blocks automatically, but only if the blocks exist on the current page and are enabled
+ */
 function block_refresh_footer() {
+  global $theme_key;
+  $blocks = array();
+  $regions = system_region_list($theme_key);
+  foreach ($regions as $region => $value) {
+    $blocks = array_merge($blocks, block_list($region));
+  }
   $settings = variable_get('block_refresh_settings', array());
   foreach ($settings as $block) {
-    if ($block['enabled']) {
-      $add = TRUE;
-      $div = "#block-{$block['block']['block']}-{$block['block']['delta']} .content";
-      $timer = $block['timer'] * 1000;
-      $base = base_path();
-      $js .= "  _block_refresh_data['$div'] = new block_refresh_data({$timer}, '{$base}block_refresh/{$block['block']['block']}/{$block['block']['delta']}');\n";
-      $js .= "  block_refresh_timer('$div');";
+    if ($block['enabled'] && isset($blocks[$block['block']['block'] . '_' . $block['block']['delta']])) {
+      $js .= theme('block_refresh_js', $block);
     }
   }
   if ($js) {
-    drupal_add_js(drupal_get_path('module', 'block_refresh') .'/js/block_refresh.js');
-    $js = "$(document).ready(function() {\n$js\n})";
-    drupal_add_js($js, 'inline');
+    if (!module_invoke('jq', 'add', 'block_refresh')) {
+      drupal_add_js(drupal_get_path('module', 'block_refresh') .'/js/block_refresh.js');
+    }
+    drupal_add_js(theme('block_refresh_js_wrapper', $js), 'inline');
   }
 }
 
+/**
+ *  call the js for an enabled block div.
+ *  you might need to override $div if your blocks have different id's than the drupal standard.
+ *  or you may wish to manually put this code in your block.tpl.php file for fine-tune control,
+ *  although that would take some finagling to do properly.
+ */
+function theme_block_refresh_js($block) {
+  // this is the block div css id and content class
+  $div = "#block-{$block['block']['block']}-{$block['block']['delta']} .content";
+
+  // we store seconds, but js expects milliseconds
+  $timer = $block['timer'] * 1000;
+
+  $base = base_path();
+  $js .= "  _block_refresh_data['$div'] = new block_refresh_data({$timer}, '{$base}block_refresh/{$block['block']['block']}/{$block['block']['delta']}');\n";
+  $js .= "  block_refresh_timer('$div');";
+  return $js;
+}
+
+/**
+ *  put the whole thing in a jquery ready call
+ */
+function theme_block_refresh_js_wrapper($js) {
+  return "$(document).ready(function() {\n$js\n})";
+}
+
+/**
+ *  Implements hook_jq
+ *  Allows optional integration with the jQ module.
+ */
+function block_refresh_jq($op, $plugin = NULL, $args = array(), $already_loaded = NULL) {
+  switch ($op) {
+    case 'info':
+      $info = array();
+      $info['block_refresh'] = array(
+        'name' => t('Block Refresh'),
+        'description' => t('Block Refresh allows an administrator to set up any block to automatically refresh its content every x seconds. Uses jQuery. Configure on individual blocks.'),
+        'url' => 'http://drupal.org/project/block_refresh',
+        'version' => t('1.2'),
+        'files' => array(
+          'js' => array(
+            drupal_get_path('module', 'block_refresh') . '/js/block_refresh.js',
+          ),
+        ),
+      );
+      return $info;
+  }
+}

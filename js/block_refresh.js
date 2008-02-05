@@ -14,7 +14,12 @@ function block_refresh_timer(div) {
    _block_refresh_data[div]._timer_id = setInterval("block_refresh('" + div + "')", _block_refresh_data[div]._timer_delay);
 }
 
-function block_refresh(div) {
+function block_refresh(div) {//alert('calling ' + _block_refresh_data[div]._url);
   $(div).load(_block_refresh_data[div]._url);
 }
 
+function block_refresh_all() {
+  for (div in _block_refresh_data) {
+    block_refresh(div);
+  }
+}
