@@ -1,5 +1,8 @@
 // $Id$
 
+2008-02-28
+add css & begin manual refresh ability
+
 2008-02-05
 add js function to reload all content (not used in module, but developers may want that)
 only load automatic refresh when block is enabled on a page

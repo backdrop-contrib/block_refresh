@@ -1,0 +1,19 @@
+/* Animated throbber */
+html.js .block-refresh-button {
+  background-image: url(throbber.gif);
+  background-repeat: no-repeat;
+  background-position: 100% 2px;
+  float: right;
+}
+
+html.js .block-refresh-button a {
+/*   margin-left: -9000px; */
+}
+
+html.js .block-refresh-button-throbbing {
+  background-position: 100% -18px;
+}
+
+html.js .block-refresh-hidden {
+  display: none;
+}

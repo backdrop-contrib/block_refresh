@@ -1,0 +1,24 @@
+<?php
+// $Id$
+
+function block_refresh_install() {
+  block_refresh_reset_jq();
+}
+
+// support for block_refresh plugin
+function block_refresh_update_1() {
+  block_refresh_reset_jq();
+}
+
+// add settings menu item, and change access to /block_refresh
+function block_refresh_update_2() {
+  menu_rebuild();
+}
+
+/**
+ *  register new plugin with jQ
+ */
+function block_refresh_reset_jq() {
+  cache_clear_all('jq_plugins', 'cache');
+}
+

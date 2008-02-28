@@ -57,11 +57,19 @@ function block_refresh_submit($form_id, $edit) {
 function block_refresh_menu($may_cache) {
   $items = array();
   if ($may_cache) {
+    $items[] = array(
+      'path' => 'admin/settings/block_refresh',
+      'title' => t('Block refresh'),
+      'description' => t('Settings for automatic and manual refreshing of configured blocks.'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => 'block_refresh_settings',
+      'access' => user_access('administer site configuration'),
+    );
     // this will display the contents of a block, if it's enabled
     $items[] = array(
       'path' => 'block_refresh',
       'type' => MENU_CALLBACK,
-      'access' => user_access('access content'),
+      'access' => user_access('access block refresh content'),
       'callback' => 'block_refresh_block_content',
       'title' => t('Block refresh block content'),
     );
@@ -70,12 +78,41 @@ function block_refresh_menu($may_cache) {
 }
 
 /**
+ *  implements hook_perm -- add permission for accessing auto/manually refreshed block content
+ */
+function block_refresh_perm() {
+  return array('access block refresh content');
+}
+
+/**
+ *  callback for admin/settings/block_refresh
+ */
+function block_refresh_settings() {
+  $form = array();
+
+  return system_settings_form($form);
+}
+
+/**
  *  page callback for /block_refresh/[module]/[delta]
  *  displays the block content, without any other page information
  */
 function block_refresh_block_content($block = NULL, $delta = NULL) {
-  if (!isset($block) || !isset($delta) || !module_implements($block, 'block')) {
+  if (!isset($block) || !isset($delta) || ($block != 'block_refresh' && !module_implements($block, 'block'))) {
     drupal_not_found();
+  }
+  if ($block == 'block_refresh' && $delta == 'all') {
+    $query = isset($_GET['blocks']) ? $_GET['blocks'] : '';;
+    $pairs = explode(',', $query);
+    foreach ($pairs as $pair) {
+      list($module, $delta) = explode('|', $pair);
+      $block = module_invoke($module, 'block', 'view', $delta);
+      $output .= '<div id="block-refresh-data-' . $module . '-' . $delta . '">' . $block['content'] . '</div>';
+    }
+    if ($output) {
+      print '<div id="block-refresh-data-all" class="block-refresh-hidden">' . $output . '</div>';
+    }
+    exit();
   }
   $settings = variable_get('block_refresh_settings', array());
   if (!$settings['block-' . $block . '-' . $delta]['enabled'] && !$settings['block-' . $block . '-' . $delta]['manual']) {
@@ -99,13 +136,19 @@ function block_refresh_footer() {
   }
   $settings = variable_get('block_refresh_settings', array());
   foreach ($settings as $block) {
-    if ($block['enabled'] && isset($blocks[$block['block']['block'] . '_' . $block['block']['delta']])) {
-      $js .= theme('block_refresh_js', $block);
+    if (isset($blocks[$block['block']['block'] . '_' . $block['block']['delta']])) {
+      if ($block['enabled']) {
+        $js .= theme('block_refresh_js', $block);
+      }
+      if ($block['manual']) {
+        $js .= theme('block_manual_refresh_js', $block);
+      }
     }
   }
   if ($js) {
     if (!module_invoke('jq', 'add', 'block_refresh')) {
       drupal_add_js(drupal_get_path('module', 'block_refresh') .'/js/block_refresh.js');
+      drupal_add_css(drupal_get_path('module', 'block_refresh') . '/css/block_refresh.css');
     }
     drupal_add_js(theme('block_refresh_js_wrapper', $js), 'inline');
   }
@@ -127,6 +170,21 @@ function theme_block_refresh_js($block) {
   $base = base_path();
   $js .= "  _block_refresh_data['$div'] = new block_refresh_data({$timer}, '{$base}block_refresh/{$block['block']['block']}/{$block['block']['delta']}');\n";
   $js .= "  block_refresh_timer('$div');";
+  return $js;
+}
+
+/**
+ *  Add a manual refresh button to the header...
+ */
+function theme_block_manual_refresh_js($block) {
+  // this is the block div css id and content class
+  $div = "block-{$block['block']['block']}-{$block['block']['delta']}";
+
+  $base = base_path();
+  $url = "{$base}block_refresh/{$block['block']['block']}/{$block['block']['delta']}";
+  $content_url = "#$div .content";
+  $js .= "  block_refresh_add_button('$div', '$url', '$content_url');";
+
   return $js;
 }
 
@@ -153,6 +211,9 @@ function block_refresh_jq($op, $plugin = NULL, $args = array(), $already_loaded 
         'files' => array(
           'js' => array(
             drupal_get_path('module', 'block_refresh') . '/js/block_refresh.js',
+          ),
+          'css' => array(
+            drupal_get_path('module', 'block_refresh') . '/css/block_refresh.css',
           ),
         ),
       );
