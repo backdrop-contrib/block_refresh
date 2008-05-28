@@ -22,18 +22,24 @@ function block_refresh_form_alter($form_id, &$form) {
       '#type' => 'checkbox',
       '#title' => t('Enable block autorefresh'),
       '#description' => t('If checked, then the content of this block may be autorefreshed automatically on a timer.'),
-      '#default_value' => $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['enabled'] ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['enabled'] : variable_get('block_refresh_autorefresh_default_enable', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_ENABLE),
+      '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['enabled']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['enabled'] : variable_get('block_refresh_autorefresh_default_enable', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_ENABLE),
     );
     $form['block_refresh']['block_refresh_manual'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable block manual refresh'),
-      '#description' => t('If checked, then the content of this block may be refreshed manually by the user, by clicking on a provided (themable) button in the block\'s subject header.'),
-      '#default_value' => $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] : variable_get('block_refresh_manual_refresh_default_enable', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_MANUAL),
+      '#description' => t('If checked, then the content of this block may be refreshed manually by the user, by clicking on a provided (themeable) button in the block\'s subject header.'),
+      '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] : variable_get('block_refresh_manual_refresh_default_enable', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_MANUAL),
+    );
+    $form['block_refresh']['block_refresh_group'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Group with other refreshing blocks'),
+      '#description' => t('If checked, then this block will be refreshed with other blocks. If also set to autorefresh, then the timer setting will be ignored, instead using the global setting of @seconds.', array('@seconds' => format_plural(variable_get('block_refresh_group_auto_timer', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER), '1 second', '@count seconds'))),
+      '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['group']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['group'] : variable_get('block_refresh_group_auto', TRUE),
     );
     $form['block_refresh']['block_refresh_timer'] = array(
       '#type' => 'textfield',
       '#title' => t('Block refresh timer'),
-      '#description' => t('Assuming that Blox Autorefresh is enabled, then the content of this block will refresh itself periodically, every number of seconds equal to this setting.'),
+      '#description' => t('Assuming that Blox Autorefresh is enabled, then the content of this block will refresh itself periodically, every number of seconds equal to this setting. If this block is grouped to refresh with other blocks, then this setting will be ignored, instaed using the global setting of @seconds.', array('@seconds' => format_plural(variable_get('block_refresh_group_auto_timer', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER), '1 second', '@count seconds'))),
       '#default_value' => $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer'] ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer'] : variable_get('block_refresh_autorefresh_default_timer', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER),
     );
   }
@@ -46,6 +52,7 @@ function block_refresh_submit($form_id, $edit) {
   $settings = variable_get('block_refresh_settings', array());
   $settings['block-' . $edit['module'] . '-' . $edit['delta']]['enabled'] = $edit['block_refresh_enable'];
   $settings['block-' . $edit['module'] . '-' . $edit['delta']]['manual'] = $edit['block_refresh_manual'];
+  $settings['block-' . $edit['module'] . '-' . $edit['delta']]['group'] = $edit['block_refresh_group'];
   $settings['block-' . $edit['module'] . '-' . $edit['delta']]['timer'] = $edit['block_refresh_timer'];
   $settings['block-' . $edit['module'] . '-' . $edit['delta']]['block'] = array('block' => $edit['module'], 'delta' => $edit['delta']);
   variable_set('block_refresh_settings', $settings);
@@ -90,6 +97,38 @@ function block_refresh_perm() {
 function block_refresh_settings() {
   $form = array();
 
+  $form['settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Settings help'),
+    '#collapsible' => TRUE,
+  );
+  $form['settings']['configure'] = array(
+    '#type' => 'item',
+    '#value' => t("Ensure that you have !configured for user roles. Adding a permission to %access will allow a block, when configured, to be refreshed automatically and/or manually.", array('%access' => 'access block refresh content', '!configured' => l(t('configured permissions'), 'admin/user/access', array(), NULL, 'module-block_refresh'))),
+  );
+  $form['settings']['settings'] = array(
+    '#type' => 'item',
+    '#value' => t("You will also need to set the appropriate settings for each block that you wish to automatically and/or manually refresh by clicking on the appropriate %configure link(s) on the !admin.", array('%configure' => t('configure'), '!admin' => l(t('blocks administration page'), 'admin/build/block'))),
+  );
+
+  $form['global'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Global settings'),
+    '#collapsible' => TRUE,
+  );
+  $form['global']['block_refresh_group_auto'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Group block refreshes'),
+    '#description' => t('If checked, then all grouped block refresh enabled blocks will be refreshed together, whether manually or using the timer settings below. To group blocks together, check the appropriate block on that block\'s configuration settings page.'),
+    '#default_value' => variable_get('block_refresh_group_auto', TRUE),
+  );
+  $form['global']['block_refresh_group_auto_timer'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Group block refresh timer'),
+    '#description' => t('Enter the time, in seconds, that grouped blocks will refresh, when grouped and set to automatic.'),
+    '#default_value' => variable_get('block_refresh_group_auto_timer', BLOCK_REFRESH_AUTOREFRESH_DEFAULT_TIMER),
+  );
+
   return system_settings_form($form);
 }
 
@@ -128,6 +167,10 @@ function block_refresh_block_content($block = NULL, $delta = NULL) {
  *  calls the jquery to refresh blocks automatically, but only if the blocks exist on the current page and are enabled
  */
 function block_refresh_footer() {
+  // don't bother to continue if the user can't refresh content anyway...
+  if (!user_access('access block refresh content')) {
+    return;
+  }
   global $theme_key;
   $blocks = array();
   $regions = system_region_list($theme_key);

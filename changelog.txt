@@ -1,5 +1,8 @@
 // $Id$
 
+2008-05-27
+grouping settings
+
 2008-02-28
 add css & begin manual refresh ability
 
