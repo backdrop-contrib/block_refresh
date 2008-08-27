@@ -1,4 +1,4 @@
 ; $Id$
 name = Block Refresh
 description = Allows blocks to automatically refresh their content.
-package = User Interface
+package = User interface
