@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 define('BLOCK_REFRESH_DEFAULT_AUTOMATIC', FALSE); // autorefresh disabled by default
 define('BLOCK_REFRESH_DEFAULT_MANUAL', FALSE); // manual refresh disabled by default

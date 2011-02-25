@@ -1,4 +1,3 @@
-; $Id$
 name = Block Refresh
 description = Allows blocks to automatically refresh their content.
 dependencies = block
