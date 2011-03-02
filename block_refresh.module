@@ -12,19 +12,22 @@ define('BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER', 120);  // default refreshes ever
 function block_refresh_init() {
   drupal_add_js(drupal_get_path('module', 'block_refresh') . '/js/block_refresh.js', array('scope' => 'footer'));
   drupal_add_css(drupal_get_path('module', 'block_refresh') . '/css/block_refresh.css');
-  
-  drupal_add_js(array(
-    'block_refresh' => array(
-      'settings' => variable_get('block_refresh_settings', array()),
-      'refresh_link' => t('Refresh'), // We place this here instead of directly in the js file so that it can be translated
-    )
-  ), 'setting');
+  if(user_access('access block refresh content')) {
+    drupal_add_js(array(
+      'block_refresh' => array(
+        'settings' => variable_get('block_refresh_settings', array()),
+        'args' => arg(),
+        'query' => block_refresh_get_query_as_string(),
+        'refresh_link' => t('Refresh'), // We place this here instead of directly in the js file so that it can be translated
+      )
+    ), 'setting');
+  }
 }
 
 /**
  * Implements hook_permission().
  * Add permission for accessing auto/manually refreshed block content
- * DRUPAL 7 STATUS: NOT WORKING!
+ * DRUPAL 7 STATUS: WORKING!
  */
 function block_refresh_permission() {
   return array(
@@ -109,7 +112,7 @@ function block_refresh_submit($form, &$form_state) {
 
 /**
  * Implements hook_menu().
- * DRUPAL 7 STATUS: UNKNOWN!
+ * DRUPAL 7 STATUS: WORKING!
  */
 function block_refresh_menu() {
   $items = array();
@@ -143,8 +146,35 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   if (!$settings['block-' . $module . '-' . $delta]['auto'] && !$settings['block-' . $module . '-' . $delta]['manual']) {
     drupal_not_found();
   }
+  //Validate args and get referrering page args from end.  Set as path.
+  $args = arg();
+  if(!empty($args[3]) && $args[0] == 'block_refresh' && $args[1] == $module && $args[2] == $delta) {
+    unset($args[0]);
+    unset($args[1]);
+    unset($args[2]);
+    $_GET['q'] = implode('/', $args);
+  } else {
+    $_GET['q'] = '';  $args = arg();
+  
+  }
   // Run the block_view hook from the block module
   $block = module_invoke($module, 'block_view', $delta);
   // Print out the content of the proceeding call
   print $block['content'];
+}
+
+/**
+ *  get all $_GET values, unset q and return as string
+ */
+function block_refresh_get_query_as_string() {
+  $vars = $_GET;
+  if(!empty($vars['q'])) {
+    unset($vars['q']);
+  }
+  if(count($vars) > 0 ) {
+    array_walk($vars , create_function('&$v,$k', '$v = $k."=".$v ;'));
+    return '?' . implode("&",$vars);
+  } else {
+    return '';
+  }
 }
