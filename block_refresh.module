@@ -61,7 +61,6 @@ function block_refresh_help($path, $arg) {
  */
 function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
   $settings = variable_get('block_refresh_settings', array());
-  
   $form['block_refresh'] = array(
     '#type' => 'fieldset',
     '#title' => t('Block refresh settings'),
