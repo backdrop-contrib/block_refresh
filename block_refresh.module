@@ -18,7 +18,6 @@ function block_refresh_init() {
         'settings' => variable_get('block_refresh_settings', array()),
         'args' => arg(),
         'query' => block_refresh_get_query_as_string(),
-        'refresh_link' => t('Refresh'), // We place this here instead of directly in the js file so that it can be translated
       )
     ), 'setting');
   }
@@ -159,7 +158,11 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   // Run the block_view hook from the block module
   $block = module_invoke($module, 'block_view', $delta);
   // Print out the content of the proceeding call
-  print $block['content'];
+  if (is_array($block['content'])) {
+     print render($block['content']);
+  } else {
+     print $block['content'];
+  }
 }
 
 /**

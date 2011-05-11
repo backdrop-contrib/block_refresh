@@ -15,7 +15,7 @@ Drupal.behaviors.qtip = {
 				}, settings['timer'] * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
 			}
 			if (settings['manual']) {
-				refresh_link = '<div class="block-refresh-button">' + Drupal.settings.block_refresh.refresh_link + '</div>';
+				refresh_link = '<div class="block-refresh-button">' + Drupal.t('Refresh') + '</div>';
 				// We'll attach the refresh link to the header if it exists...
 				if ($('#' + element + ' h2').length) {
 					// note: for some reason I couldn't get $(this) to work, I don't know why
