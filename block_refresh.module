@@ -158,11 +158,7 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   // Run the block_view hook from the block module
   $block = module_invoke($module, 'block_view', $delta);
   // Print out the content of the proceeding call
-  if (is_array($block['content'])) {
-     print render($block['content']);
-  } else {
-     print $block['content'];
-  }
+  print render($block['content']);
 }
 
 /**
