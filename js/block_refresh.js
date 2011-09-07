@@ -1,8 +1,15 @@
-// $Id:$
 (function ($) {
-Drupal.behaviors.qtip = {
+Drupal.behaviors.block_refresh = {
   attach: function(context) {
-		$.each(Drupal.settings.block_refresh.settings, function(element, settings) {
+		$.each(Drupal.settings.block_refresh.settings, function(key, settings) {
+			var element = settings.element;
+			// Do not bother if no element exists or has already been processed.
+			if (!$('#' + element).size() || $('#' + element).hasClass('block-refresh-processed')) {
+				return;
+			}
+			
+			$('#' + element).addClass('block-refresh-processed');
+			
       //Get argument from referring page and append to end of load request
       args = '';
       $.each(Drupal.settings.block_refresh.args, function(index, arg) {
@@ -11,8 +18,10 @@ Drupal.behaviors.qtip = {
       query = Drupal.settings.block_refresh.query;
      	if (settings['auto']) {
 				setInterval(function() {
-					$('#' + element + ' .content').load(Drupal.settings.basePath + 'block_refresh/' + settings['block']['block'] + '/' + settings['block']['delta'] + args + query);
-				}, settings['timer'] * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
+					$('#' + element + ' .content').load(Drupal.settings.basePath + 'block_refresh/' + settings['block']['block'] + '/' + settings['block']['delta'] + args + query, function() {
+						Drupal.attachBehaviors(this);
+					});
+          }, settings['timer'] * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
 			}
 			if (settings['manual']) {
 				refresh_link = '<div class="block-refresh-button">' + Drupal.t('Refresh') + '</div>';
@@ -31,6 +40,7 @@ Drupal.behaviors.qtip = {
 				$(this).addClass('block-refresh-button-throbbing');
 				$('#' + element + ' .content').load(Drupal.settings.basePath + 'block_refresh/' + settings['block']['block'] + '/' + settings['block']['delta'] + args + query, '', function() {
 					$('.block-refresh-button').removeClass('block-refresh-button-throbbing');
+					Drupal.attachBehaviors(this);
 				});
 			});
 		});
