@@ -4,6 +4,7 @@ define('BLOCK_REFRESH_DEFAULT_AUTOMATIC', FALSE); // autorefresh disabled by def
 define('BLOCK_REFRESH_DEFAULT_MANUAL', FALSE); // manual refresh disabled by default
 define('BLOCK_REFRESH_DEFAULT_PANELS', FALSE); // panels support disabled by default
 define('BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER', 120);  // default refreshes every two minutes, if enabled
+define('BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION', 'access block refresh content');
 
 /**
  * Implements hook_init().
@@ -11,9 +12,9 @@ define('BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER', 120);  // default refreshes ever
  * DRUPAL 7 STATUS: WORKING!
  */
 function block_refresh_init() {
-  drupal_add_js(drupal_get_path('module', 'block_refresh') . '/js/block_refresh.js', array('scope' => 'footer'));
-  drupal_add_css(drupal_get_path('module', 'block_refresh') . '/css/block_refresh.css');
-  if(user_access('access block refresh content')) {
+  if (user_access(BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION)) {
+    drupal_add_js(drupal_get_path('module', 'block_refresh') . '/js/block_refresh.js', array('scope' => 'footer'));
+    drupal_add_css(drupal_get_path('module', 'block_refresh') . '/css/block_refresh.css');
     drupal_add_js(array(
       'block_refresh' => array(
         'settings' => variable_get('block_refresh_settings', array()),
@@ -31,7 +32,7 @@ function block_refresh_init() {
  */
 function block_refresh_permission() {
   return array(
-    'access block refresh content' => array(
+    BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION => array(
       'title' => t('Access block refresh content'),
       'description' => t('Selected roles will see content refreshed in enabled blocks.'),
     ),
@@ -46,7 +47,7 @@ function block_refresh_help($path, $arg) {
   switch ($path) {
     case 'admin/help#block_refresh':
       $block_refresh_help  = '<div class="form-item">';
-      $block_refresh_help .= t("Ensure that you have !configured for user roles. Adding a permission to %access will allow a block, when configured, to be refreshed automatically and/or manually.", array('%access' => 'access block refresh content', '!configured' => l(t('configured permissions'), 'admin/user/access', array(), NULL, 'module-block_refresh')));
+      $block_refresh_help .= t("Ensure that you have !configured for user roles. Adding a permission to %access will allow a block, when configured, to be refreshed automatically and/or manually.", array('%access' => BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION, '!configured' => l(t('configured permissions'), 'admin/user/access', array(), NULL, 'module-block_refresh')));
       $block_refresh_help .= '</div><div class="form-item">';
       $block_refresh_help .= t("You will also need to set the appropriate settings for each block that you wish to automatically and/or manually refresh by clicking on the appropriate %configure link(s) on the !admin.", array('%configure' => t('configure'), '!admin' => l(t('blocks administration page'), 'admin/build/block')));
       $block_refresh_help .= '</div>';  
@@ -127,7 +128,7 @@ function block_refresh_menu() {
   $items['block_refresh'] = array(
     'title' => 'Block refresh block content',
     'page callback' => 'block_refresh_block_content',
-    'access arguments' => array('access block refresh content'),
+    'access arguments' => array(BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION),
     'type' => MENU_CALLBACK,
   );
   return $items;
