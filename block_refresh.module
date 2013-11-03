@@ -61,6 +61,7 @@ function block_refresh_help($path, $arg) {
  * DRUPAL 7 STATUS: APPEARS TO BE WORKING!
  */
 function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
+  $block_id = drupal_html_id('block-' . $form['module']['#value'] . '-' . $form['delta']['#value']);
   $settings = variable_get('block_refresh_settings', array());
   $form['block_refresh'] = array(
     '#type' => 'fieldset',
@@ -73,25 +74,25 @@ function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
     '#type' => 'checkbox',
     '#title' => t('Enable block to be refreshed automatically'),
     '#description' => t('If checked, then the content of this block will be refresh automatically every x seconds defined below.'),
-    '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['auto']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['auto'] : variable_get('block_refresh_default_automatic', BLOCK_REFRESH_DEFAULT_AUTOMATIC),
+    '#default_value' => isset($settings[$block_id]['auto']) ? $settings[$block_id]['auto'] : variable_get('block_refresh_default_automatic', BLOCK_REFRESH_DEFAULT_AUTOMATIC),
   );
   $form['block_refresh']['block_refresh_timer'] = array(
     '#type' => 'textfield',
     '#title' => t('Block refresh timer'),
     '#description' => t('If this block is set to be refreshed automatically (checkbox above is checked), enter the number of <strong>seconds</strong> between each refresh.'),
-    '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer'] : variable_get('block_refresh_autorefresh_default_timer', BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER),
+    '#default_value' => isset($settings[$block_id]['timer']) ? $settings[$block_id]['timer'] : variable_get('block_refresh_autorefresh_default_timer', BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER),
   );
   $form['block_refresh']['block_refresh_manual'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable block to be refreshed manually'),
     '#description' => t('If checked, then the content of this block may be refreshed manually by the user, by clicking on a provided (themeable) button in the block\'s subject header.'),
-    '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] : variable_get('block_refresh_default_manual', BLOCK_REFRESH_DEFAULT_MANUAL),
+    '#default_value' => isset($settings[$block_id]['manual']) ? $settings[$block_id]['manual'] : variable_get('block_refresh_default_manual', BLOCK_REFRESH_DEFAULT_MANUAL),
   );
   $form['block_refresh']['block_refresh_panels'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable block to be used in Panels'),
     '#description' => t('If checked, then the content of this block will be refreshed when used inside the Panels module.'),
-    '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['panels']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['panels'] : variable_get('block_refresh_default_panels', BLOCK_REFRESH_DEFAULT_PANELS),
+    '#default_value' => isset($settings[$block_id]['panels']) ? $settings[$block_id]['panels'] : variable_get('block_refresh_default_panels', BLOCK_REFRESH_DEFAULT_PANELS),
   );
   $form['#submit'][] = 'block_refresh_submit';
 }
@@ -101,19 +102,20 @@ function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
  *  This handles the submission on the specific block configuration page
  */
 function block_refresh_submit($form, &$form_state) {
+  $block_id = drupal_html_id('block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']);
   $settings = variable_get('block_refresh_settings', array());
   // If the auto (enable) checkbox AND the manual checkbox are unchecked, we want to remove the current block from the array
   if(!$form['block_refresh']['block_refresh_auto']['#checked'] && !$form['block_refresh']['block_refresh_manual']['#checked']) {
-    unset($settings['block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']]);
+    unset($settings[$block_id]);
   }
   // Otherwise, we need to setup the block to be configured for block refresh
   else {
-    $settings['block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']]['element'] = drupal_html_id('block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']);
-    $settings['block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']]['auto'] = $form_state['values']['block_refresh_auto'];
-    $settings['block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']]['manual'] = $form_state['values']['block_refresh_manual'];
-    $settings['block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']]['panels'] = $form_state['values']['block_refresh_panels'];
-    $settings['block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']]['timer'] = $form_state['values']['block_refresh_timer'];
-    $settings['block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']]['block'] = array('block' => $form_state['values']['module'], 'delta' => $form_state['values']['delta']);
+    $settings[$block_id]['element'] = drupal_html_id('block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']);
+     $settings[$block_id]['auto'] = $form_state['values']['block_refresh_auto'];
+     $settings[$block_id]['manual'] = $form_state['values']['block_refresh_manual'];
+     $settings[$block_id]['panels'] = $form_state['values']['block_refresh_panels'];
+     $settings[$block_id]['timer'] = $form_state['values']['block_refresh_timer'];
+     $settings[$block_id]['block'] = array('block' => $form_state['values']['module'], 'delta' => $form_state['values']['delta']);
   }
   variable_set('block_refresh_settings', $settings);
 }
