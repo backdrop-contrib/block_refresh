@@ -3,6 +3,3 @@ description = Allows blocks to automatically refresh their content.
 dependencies = block
 package = User interface
 core = 7.x
-
-files[] = block_refresh.module
-files[] = block_refresh.install
