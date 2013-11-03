@@ -206,12 +206,15 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
 }
 
 /**
- *  get all $_GET values, unset q and return as string
+ *  get all $_GET values, unset q and render, and return as string
  */
 function block_refresh_get_query_as_string() {
   $vars = $_GET;
   if(!empty($vars['q'])) {
     unset($vars['q']);
+  }
+  if(!empty($vars['render'])) {
+    unset($vars['render']);
   }
   if(count($vars) > 0 ) {
     $querystring = '?' . http_build_query($vars);
