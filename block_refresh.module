@@ -212,8 +212,8 @@ function block_refresh_get_query_as_string() {
     unset($vars['q']);
   }
   if(count($vars) > 0 ) {
-    array_walk($vars , create_function('&$v,$k', '$v = $k."=".$v ;'));
-    return '?' . implode("&",$vars);
+    $querystring = '?' . http_build_query($vars);
+    return $querystring;
   } else {
     return '';
   }
