@@ -110,7 +110,7 @@ function block_refresh_submit($form, &$form_state) {
   }
   // Otherwise, we need to setup the block to be configured for block refresh
   else {
-    $settings[$block_id]['element'] = drupal_html_id('block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']);
+    $settings[$block_id]['element'] = $block_id;
      $settings[$block_id]['auto'] = $form_state['values']['block_refresh_auto'];
      $settings[$block_id]['manual'] = $form_state['values']['block_refresh_manual'];
      $settings[$block_id]['panels'] = $form_state['values']['block_refresh_panels'];
