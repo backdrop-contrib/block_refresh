@@ -50,8 +50,8 @@ function block_refresh_help($path, $arg) {
       $block_refresh_help .= t("Ensure that you have !configured for user roles. Adding a permission to %access will allow a block, when configured, to be refreshed automatically and/or manually.", array('%access' => BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION, '!configured' => l(t('configured permissions'), 'admin/user/access', array(), NULL, 'module-block_refresh')));
       $block_refresh_help .= '</div><div class="form-item">';
       $block_refresh_help .= t("You will also need to set the appropriate settings for each block that you wish to automatically and/or manually refresh by clicking on the appropriate %configure link(s) on the !admin.", array('%configure' => t('configure'), '!admin' => l(t('blocks administration page'), 'admin/build/block')));
-      $block_refresh_help .= '</div>';  
-      return $block_refresh_help;      
+      $block_refresh_help .= '</div>';
+      return $block_refresh_help;
   }
 }
 
@@ -163,7 +163,7 @@ function block_refresh_form_alter(&$form, &$form_state, $form_id) {
       '#description' => t('If checked, then the content of this block may be refreshed manually by the user, by clicking on a provided (themeable) button in the block\'s subject header.'),
       '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] : variable_get('block_refresh_default_manual', BLOCK_REFRESH_DEFAULT_MANUAL),
     );
-    
+
     $form['#submit'][] = 'block_refresh_submit_panels';
   }
 }
@@ -182,10 +182,11 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   if (!isset($module) || !isset($delta)) {
     drupal_not_found();
   }
-  
+
+  $block_id = drupal_html_id('block-' . $module . '-' . $delta);
   $settings = variable_get('block_refresh_settings', array());
   // If automatic refresh AND manual refresh are both disabled...
-  if (!$settings['block-' . $module . '-' . $delta]['auto'] && !$settings['block-' . $module . '-' . $delta]['manual']) {
+  if (!$settings[$block_id]['auto'] && !$settings[$block_id]['manual']) {
     drupal_not_found();
   }
   //Validate args and get referrering page args from end.  Set as path.
@@ -197,7 +198,7 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
     $_GET['q'] = implode('/', $args);
   } else {
     $_GET['q'] = '';  $args = arg();
-  
+
   }
   // Run the block_view hook from the block module
   $block = module_invoke($module, 'block_view', $delta);
