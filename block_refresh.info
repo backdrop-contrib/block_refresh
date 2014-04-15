@@ -1,5 +1,5 @@
 name = Block Refresh
 description = Allows blocks to automatically refresh their content.
-dependencies = block
+dependencies[] = block
 package = User interface
 core = 7.x
