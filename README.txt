@@ -34,4 +34,4 @@ None.
 -- CONTACT --
 
 Current maintainers:
-* Jacob Neher (bocaj) - http://drupal.org/user/582042
+* Phil Dodd (tripper54) - http://drupal.org/user/452964
