@@ -64,6 +64,11 @@ function block_refresh_help($path, $arg) {
  */
 function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
   $block_id = drupal_html_id('block-' . $form['module']['#value'] . '-' . $form['delta']['#value']);
+  $form = $form + block_refresh_settings_form_elements($block_id);
+  $form['#submit'][] = 'block_refresh_submit';
+}
+
+function block_refresh_settings_form_elements($block_id) {
   $settings = variable_get('block_refresh_settings', array());
   $form['block_refresh'] = array(
     '#type' => 'fieldset',
@@ -108,7 +113,7 @@ function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
     '#description' => t('If you wish to override the max age of refreshed data served from an external cache (eg Varnish), enter a value in seconds here. Leave blank to use your sitewide default value.'),
     '#default_value' => isset($settings[$block_id]['bypass_external_cache']) ? $settings[$block_id]['bypass_external_cache'] : variable_get('block_refresh_default_bypass_external_cache', BLOCK_REFRESH_DEFAULT_BYPASS_EXTERNAL_CACHE),
   );
-  $form['#submit'][] = 'block_refresh_submit';
+  return $form;
 }
 
 /**
@@ -170,34 +175,8 @@ function block_refresh_menu() {
 
 function block_refresh_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'ctools_block_content_type_edit_form') {
-    $settings = variable_get('block_refresh_settings', array());
     $block_id = drupal_html_id('block-' . $form_state['subtype_name']);
-    $form['block_refresh'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Block refresh settings'),
-      '#collapsible' => FALSE,
-      '#collapsed' => FALSE,
-      '#weight' => -1,
-    );
-    $form['block_refresh']['block_refresh_auto'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Enable block to be refreshed automatically'),
-      '#description' => t('If checked, then the content of this block will be refresh automatically every x seconds defined below.'),
-      '#default_value' => isset($settings[$block_id]['auto']) ? $settings[$block_id]['auto'] : variable_get('block_refresh_default_automatic', BLOCK_REFRESH_DEFAULT_AUTOMATIC),
-    );
-    $form['block_refresh']['block_refresh_timer'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Block refresh timer'),
-      '#description' => t('If this block is set to be refreshed automatically (checkbox above is checked), enter the number of <strong>seconds</strong> between each refresh.'),
-      '#default_value' => isset($settings[$block_id]['timer']) ? $settings[$block_id]['timer'] : variable_get('block_refresh_autorefresh_default_timer', BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER),
-    );
-    $form['block_refresh']['block_refresh_manual'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Enable block to be refreshed manually'),
-      '#description' => t('If checked, then the content of this block may be refreshed manually by the user, by clicking on a provided (themeable) button in the block\'s subject header.'),
-      '#default_value' => isset($settings[$block_id]['manual']) ? $settings[$block_id]['manual'] : variable_get('block_refresh_default_manual', BLOCK_REFRESH_DEFAULT_MANUAL),
-    );
-
+    $form = $form + block_refresh_settings_form_elements($block_id);
     $form['#submit'][] = 'block_refresh_submit';
   }
 }
