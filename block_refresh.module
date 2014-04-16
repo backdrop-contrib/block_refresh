@@ -99,10 +99,23 @@ function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
 
 /**
  *  Submission handler for for block_refresh_menu().
- *  This handles the submission on the specific block configuration page
+ *  This handles the submission on both the block configuration page,
+ *  and the panels pane config page.
  */
 function block_refresh_submit($form, &$form_state) {
-  $block_id = drupal_html_id('block-' . $form_state['values']['module'] . '-' . $form_state['values']['delta']);
+  if ($form['#form_id'] == 'block_admin_configure') {
+    $module = $form_state['values']['module'];
+    $delta = $form_state['values']['delta'];
+    $panels = $form_state['values']['block_refresh_panels'];
+  }
+  else {
+    // The form has been submitted from a panels pane config dialog.
+    list($module,$delta) = explode('-',$form_state['subtype_name']);
+    // As the options have been set in the panels pane, we can
+    // assume that the user wants the block to work in panels.
+    $panels = 1;
+  }
+  $block_id = drupal_html_id('block-' . $module . '-' . $delta);
   $settings = variable_get('block_refresh_settings', array());
   // If the auto (enable) checkbox AND the manual checkbox are unchecked, we want to remove the current block from the array
   if(!$form['block_refresh']['block_refresh_auto']['#checked'] && !$form['block_refresh']['block_refresh_manual']['#checked']) {
@@ -113,9 +126,12 @@ function block_refresh_submit($form, &$form_state) {
     $settings[$block_id]['element'] = $block_id;
      $settings[$block_id]['auto'] = $form_state['values']['block_refresh_auto'];
      $settings[$block_id]['manual'] = $form_state['values']['block_refresh_manual'];
-     $settings[$block_id]['panels'] = $form_state['values']['block_refresh_panels'];
+     $settings[$block_id]['panels'] = $panels;
      $settings[$block_id]['timer'] = $form_state['values']['block_refresh_timer'];
-     $settings[$block_id]['block'] = array('block' => $form_state['values']['module'], 'delta' => $form_state['values']['delta']);
+     $settings[$block_id]['block'] = array(
+       'block' => $module,
+       'delta' => $delta,
+       );
   }
   variable_set('block_refresh_settings', $settings);
 }
@@ -138,6 +154,8 @@ function block_refresh_menu() {
 
 function block_refresh_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'ctools_block_content_type_edit_form') {
+    $settings = variable_get('block_refresh_settings', array());
+    $block_id = drupal_html_id('block-' . $form_state['subtype_name']);
     $form['block_refresh'] = array(
       '#type' => 'fieldset',
       '#title' => t('Block refresh settings'),
@@ -149,22 +167,22 @@ function block_refresh_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'checkbox',
       '#title' => t('Enable block to be refreshed automatically'),
       '#description' => t('If checked, then the content of this block will be refresh automatically every x seconds defined below.'),
-      '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['auto']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['auto'] : variable_get('block_refresh_default_automatic', BLOCK_REFRESH_DEFAULT_AUTOMATIC),
+      '#default_value' => isset($settings[$block_id]['auto']) ? $settings[$block_id]['auto'] : variable_get('block_refresh_default_automatic', BLOCK_REFRESH_DEFAULT_AUTOMATIC),
     );
     $form['block_refresh']['block_refresh_timer'] = array(
       '#type' => 'textfield',
       '#title' => t('Block refresh timer'),
       '#description' => t('If this block is set to be refreshed automatically (checkbox above is checked), enter the number of <strong>seconds</strong> between each refresh.'),
-      '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['timer'] : variable_get('block_refresh_autorefresh_default_timer', BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER),
+      '#default_value' => isset($settings[$block_id]['timer']) ? $settings[$block_id]['timer'] : variable_get('block_refresh_autorefresh_default_timer', BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER),
     );
     $form['block_refresh']['block_refresh_manual'] = array(
       '#type' => 'checkbox',
       '#title' => t('Enable block to be refreshed manually'),
       '#description' => t('If checked, then the content of this block may be refreshed manually by the user, by clicking on a provided (themeable) button in the block\'s subject header.'),
-      '#default_value' => isset($settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual']) ? $settings['block-' . $form['module']['#value'] . '-' . $form['delta']['#value']]['manual'] : variable_get('block_refresh_default_manual', BLOCK_REFRESH_DEFAULT_MANUAL),
+      '#default_value' => isset($settings[$block_id]['manual']) ? $settings[$block_id]['manual'] : variable_get('block_refresh_default_manual', BLOCK_REFRESH_DEFAULT_MANUAL),
     );
 
-    $form['#submit'][] = 'block_refresh_submit_panels';
+    $form['#submit'][] = 'block_refresh_submit';
   }
 }
 
