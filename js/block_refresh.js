@@ -27,7 +27,7 @@
         query = Drupal.settings.block_refresh.query;
         if (auto) {
           setInterval(function() {
-            $(element + ' ' + element_content).load(Drupal.settings.basePath + 'block_refresh/' + block + '/' + delta + args + query, function() {
+            $(element + ' ' + element_content).load(Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query, function() {
               Drupal.attachBehaviors(this);
             });
           }, timer * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
@@ -47,7 +47,7 @@
 
         $('.block-refresh-button').click(function() {
           $(this).addClass('block-refresh-button-throbbing');
-          $(element + ' ' + element_content).load(Drupal.settings.basePath + 'block_refresh/' + block + '/' + delta + args + query, '', function() {
+          $(element + ' ' + element_content).load(Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query, '', function() {
             $('.block-refresh-button').removeClass('block-refresh-button-throbbing');
             Drupal.attachBehaviors(this);
           });
