@@ -11,7 +11,6 @@ define('BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION', 'access block refresh content'
 /**
  * Implements hook_init().
  * Calls the jquery to refresh blocks automatically, but only if the blocks exist on the current page and are enabled
- * DRUPAL 7 STATUS: WORKING!
  */
 function block_refresh_init() {
   if (user_access(BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION)) {
@@ -30,7 +29,6 @@ function block_refresh_init() {
 /**
  * Implements hook_permission().
  * Add permission for accessing auto/manually refreshed block content
- * DRUPAL 7 STATUS: WORKING!
  */
 function block_refresh_permission() {
   return array(
@@ -43,7 +41,6 @@ function block_refresh_permission() {
 
 /**
  * Implements hook_help().
- * DRUPAL 7 STATUS: WORKING!
  */
 function block_refresh_help($path, $arg) {
   switch ($path) {
@@ -60,7 +57,6 @@ function block_refresh_help($path, $arg) {
 /**
  * Implements hook_form_FORM_ID_alter().
  * Add a 'Block Refresh' settings fieldset to the block admin form
- * DRUPAL 7 STATUS: APPEARS TO BE WORKING!
  */
 function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
   $block_id = drupal_html_id('block-' . $form['module']['#value'] . '-' . $form['delta']['#value']);
@@ -68,6 +64,9 @@ function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
   $form['#submit'][] = 'block_refresh_submit';
 }
 
+/**
+ * Generates the form elements for block refresh settings.
+ */
 function block_refresh_settings_form_elements($block_id) {
   $settings = variable_get('block_refresh_settings', array());
   $form['block_refresh'] = array(
@@ -159,7 +158,6 @@ function block_refresh_submit($form, &$form_state) {
 
 /**
  * Implements hook_menu().
- * DRUPAL 7 STATUS: WORKING!
  */
 function block_refresh_menu() {
   $items = array();
