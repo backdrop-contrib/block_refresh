@@ -3,6 +3,8 @@
 define('BLOCK_REFRESH_DEFAULT_AUTOMATIC', FALSE); // autorefresh disabled by default
 define('BLOCK_REFRESH_DEFAULT_MANUAL', FALSE); // manual refresh disabled by default
 define('BLOCK_REFRESH_DEFAULT_PANELS', FALSE); // panels support disabled by default
+define('BLOCK_REFRESH_DEFAULT_BYPASS_PAGE_CACHE', FALSE); // page cache bypass disabled by default
+define('BLOCK_REFRESH_DEFAULT_BYPASS_EXTERNAL_CACHE', ''); // external cache bypass disabled by default
 define('BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER', 120);  // default refreshes every two minutes, if enabled
 define('BLOCK_REFRESH_ACCESS_CONTENT_PERMISSION', 'access block refresh content');
 
@@ -94,6 +96,18 @@ function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
     '#description' => t('If checked, then the content of this block will be refreshed when used inside the Panels module.'),
     '#default_value' => isset($settings[$block_id]['panels']) ? $settings[$block_id]['panels'] : variable_get('block_refresh_default_panels', BLOCK_REFRESH_DEFAULT_PANELS),
   );
+  $form['block_refresh']['block_refresh_bypass_page_cache'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Bypass Drupal page cache'),
+    '#description' => t('If checked, then the refreshed content of this block will bypass drupal\'s page cache. If stale content is being served to you due to caching, try checking this box. Warning! this can have a performance impact.'),
+    '#default_value' => isset($settings[$block_id]['bypass_page_cache']) ? $settings[$block_id]['bypass_page_cache'] : variable_get('block_refresh_default_bypass_page_cache', BLOCK_REFRESH_DEFAULT_BYPASS_PAGE_CACHE),
+  );
+  $form['block_refresh']['block_refresh_bypass_external_cache'] = array(
+    '#type' => 'textfield',
+    '#title' => t('External cache max age'),
+    '#description' => t('If you wish to override the max age of refreshed data served from an external cache (eg Varnish), enter a value in seconds here. Leave blank to use your sitewide default value.'),
+    '#default_value' => isset($settings[$block_id]['bypass_external_cache']) ? $settings[$block_id]['bypass_external_cache'] : variable_get('block_refresh_default_bypass_external_cache', BLOCK_REFRESH_DEFAULT_BYPASS_EXTERNAL_CACHE),
+  );
   $form['#submit'][] = 'block_refresh_submit';
 }
 
@@ -132,6 +146,8 @@ function block_refresh_submit($form, &$form_state) {
        'block' => $module,
        'delta' => $delta,
        );
+     $settings[$block_id]['bypass_page_cache'] = $form_state['values']['block_refresh_bypass_page_cache'];
+     $settings[$block_id]['bypass_external_cache'] = $form_state['values']['block_refresh_bypass_external_cache'];
   }
   variable_set('block_refresh_settings', $settings);
 }
@@ -220,6 +236,17 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   }
   // Run the block_view hook from the block module
   $block = module_invoke($module, 'block_view', $delta);
+
+  //Bypass page cache if set
+  if($settings[$block_id]['bypass_page_cache'] == 1) {
+    $GLOBALS['conf']['cache'] = FALSE;
+  }
+
+  //Override external cache max age if set
+  if ($settings[$block_id]['bypass_external_cache'] != '') {
+    drupal_add_http_header('Cache-Control', 'public, max-age=' . intval($settings[$block_id]['bypass_external_cache']));
+  }
+
   // Print out the content of the proceeding call
   print render($block['content']);
 }
