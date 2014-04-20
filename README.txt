@@ -31,6 +31,13 @@ None.
          permission required, the block will appear as though it was not configured with
          Block Refresh.
 
+
+--  TROUBLESHOOTING --
+
+* If block are refreshing strangely on taxonomy/term/xx pages and you are
+running the Global Redirect module, disable the 'taxonomy term path handler'
+feature on that module's configuration page.
+
 -- CONTACT --
 
 Current maintainers:
