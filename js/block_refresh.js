@@ -3,15 +3,15 @@
     attach: function(context) {
       $.each(Drupal.settings.block_refresh.settings, function(key, settings) {
         var element = settings.element;
-        setBlockRefresh('#' + element, '.content', settings['auto'], settings['manual'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
+        setBlockRefresh('#' + element, '.content', settings['auto'], settings['manual'], settings['init'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
 
         if (settings['panels']) {
           element = element.replace('block-', 'pane-');
-          setBlockRefresh('.' + element, '.pane-content', settings['auto'], settings['manual'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
+          setBlockRefresh('.' + element, '.pane-content', settings['auto'], settings['manual'], settings['init'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
         }
       });
 
-      function setBlockRefresh(element, element_content, auto, manual, timer, arguments, block, delta) {
+      function setBlockRefresh(element, element_content, auto, manual, init, timer, arguments, block, delta) {
         // Do not bother if no element exists or has already been processed.
         if (!$(element).size() || $(element).hasClass('block-refresh-processed')) {
           return;
@@ -22,7 +22,7 @@
         //Get argument from referring page and append to end of load request
         args = '';
         query = '';
-        if (arguments == 1) {
+        if (arguments) {
           $.each(Drupal.settings.block_refresh.args, function(index, arg) {
             args += '/' + arg;
           });
@@ -47,6 +47,11 @@
           else {
             $(element + ' ' + element_content).before(refresh_link);
           }
+        }
+        if (init) {
+          $(element + ' ' + element_content).load(Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query, '', function() {
+            Drupal.attachBehaviors(this);
+          });
         }
 
         $('.block-refresh-button').click(function() {
