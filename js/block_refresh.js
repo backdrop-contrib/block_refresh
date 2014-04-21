@@ -3,15 +3,15 @@
     attach: function(context) {
       $.each(Drupal.settings.block_refresh.settings, function(key, settings) {
         var element = settings.element;
-        setBlockRefresh('#' + element, '.content', settings['auto'], settings['manual'], settings['timer'], settings['block']['block'], settings['block']['delta']);
+        setBlockRefresh('#' + element, '.content', settings['auto'], settings['manual'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
 
         if (settings['panels']) {
           element = element.replace('block-', 'pane-');
-          setBlockRefresh('.' + element, '.pane-content', settings['auto'], settings['manual'], settings['timer'], settings['block']['block'], settings['block']['delta']);
+          setBlockRefresh('.' + element, '.pane-content', settings['auto'], settings['manual'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
         }
       });
 
-      function setBlockRefresh(element, element_content, auto, manual, timer, block, delta) {
+      function setBlockRefresh(element, element_content, auto, manual, timer, arguments, block, delta) {
         // Do not bother if no element exists or has already been processed.
         if (!$(element).size() || $(element).hasClass('block-refresh-processed')) {
           return;
@@ -21,10 +21,14 @@
 
         //Get argument from referring page and append to end of load request
         args = '';
-        $.each(Drupal.settings.block_refresh.args, function(index, arg) {
-          args += '/' + arg;
-        });
-        query = Drupal.settings.block_refresh.query;
+        query = '';
+        if (arguments == 1) {
+          $.each(Drupal.settings.block_refresh.args, function(index, arg) {
+            args += '/' + arg;
+          });
+          query = Drupal.settings.block_refresh.query;
+        }
+
         if (auto) {
           setInterval(function() {
             $(element + ' ' + element_content).load(Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query, function() {
