@@ -26,8 +26,6 @@ function block_refresh_demo_install() {
     'bypass_external_cache' => '',
   );
 
-  //= 'block-block-refresh-demo-block-refresh-demo' =
-
   $settings = variable_get('block_refresh_settings',array());
 
   $settings['block-block-refresh-demo-block-refresh-demo'] = $demo_settings;
