@@ -3,8 +3,8 @@
 /**
  * Tests functionality of the block refresh module.
  */
-
 class BlockRefreshSettingsTestCase extends DrupalWebTestCase {
+
   protected $privileged_user;
 
   public static function getInfo() {
@@ -19,11 +19,11 @@ class BlockRefreshSettingsTestCase extends DrupalWebTestCase {
   public function setUp() {
     // Enable any modules required for the test. This should be an array of
     // module names.
-    parent::setUp(array('block_refresh','block_refresh_demo'));
+    parent::setUp(array('block_refresh', 'block_refresh_demo'));
     // Create and log in our privileged user.
     $this->privileged_user = $this->drupalCreateUser(array(
       'administer blocks',
-      ));
+    ));
     $this->drupalLogin($this->privileged_user);
 
     // Define the existing regions
@@ -48,6 +48,5 @@ class BlockRefreshSettingsTestCase extends DrupalWebTestCase {
     $this->assertText('Bypass Drupal page cache');
     $this->assertText('External cache max age');
   }
-
 
 }
