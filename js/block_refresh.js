@@ -28,38 +28,48 @@
           });
           query = Drupal.settings.block_refresh.query;
         }
-
-        if (auto) {
+        var path = Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query;
+        if (auto && context == document) {
           setInterval(function() {
-            $(element + ' ' + element_content).load(Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query, function() {
-              Drupal.attachBehaviors(this);
-            });
+            BlockRefreshContent(path, element, element_content);
           }, timer * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
         }
         if (manual) {
-          refresh_link = '<div class="block-refresh-button">' + Drupal.t('Refresh') + '</div>';
-          // We'll attach the refresh link to the header if it exists...
-          if ($(element + ' h2').length) {
-            // note: for some reason I couldn't get $(this) to work, I don't know why
-            $(element + ' h2').before(refresh_link);
-          }
-          // ...otherwise we will attach it to the content
-          else {
-            $(element + ' ' + element_content).before(refresh_link);
-          }
+          addBlockRefreshButton(element, element_content);
         }
-        if (init) {
-          $(element + ' ' + element_content).load(Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query, '', function() {
-            Drupal.attachBehaviors(this);
-          });
+        if (init && context == document) {
+          BlockRefreshContent(path, element, element_content);
         }
 
         $('.block-refresh-button').click(function() {
           $(this).addClass('block-refresh-button-throbbing');
-          $(element + ' ' + element_content).load(Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query, '', function() {
-            $('.block-refresh-button').removeClass('block-refresh-button-throbbing');
-            Drupal.attachBehaviors(this);
-          });
+          BlockRefreshContent(path, element, element_content);
+        });
+      }
+
+      function addBlockRefreshButton(element, element_content) {
+        var refresh_link = '<div class="block-refresh-button">' + Drupal.t('Refresh') + '</div>';
+        // We'll attach the refresh link to the header if it exists...
+        if ($(element + ' h2').length) {
+          $(element + ' h2').before(refresh_link);
+        }
+        // ...otherwise we will attach it to the content
+        else {
+          $(element + ' ' + element_content).before(refresh_link);
+        }
+      }
+
+      function BlockRefreshContent(path, element, element_content) {
+        $.get(path, function(data) {
+          var contents = $(data).html();
+          // if this is a panel, preserver panel title.
+          var oldh2 = $(element + ' h2.pane-title');
+          $(element).html(contents);
+          if (oldh2.length) {
+            $(element + ' h2').replaceWith(oldh2);
+          }
+          $(element).removeClass('block-refresh-processed');
+          Drupal.attachBehaviors(this);
         });
       }
     }

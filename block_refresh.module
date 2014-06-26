@@ -243,8 +243,11 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
     drupal_add_http_header('Cache-Control', 'public, max-age=' . intval($settings[$block_id]['bypass_external_cache']));
   }
 
-  // Print out the content of the proceeding call
-  print render($block['content']);
+  $block  = block_load($module, $delta);
+  $output = drupal_render(_block_get_renderable_array(_block_render_blocks(array($block))));
+
+   // Print out the content of the proceeding call
+   print $output;
 }
 
 /**
