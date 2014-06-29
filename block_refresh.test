@@ -37,16 +37,55 @@ class BlockRefreshSettingsTestCase extends DrupalWebTestCase {
 
   //Check if the block refresh elements appear on the configure form.
   public function testBlockRefreshConfigureForm() {
-    $this->drupalGet('admin/structure/block/manage/block_refresh_demo/block_refresh_demo/configure');
+    $configure_path = 'admin/structure/block/manage/block_refresh_demo/block_refresh_demo/configure';
+    $this->drupalGet($configure_path);
     $this->assertText('Block refresh settings');
+
+    //Auto refresh
     $this->assertText('Enable block to be refreshed automatically');
+    $this->assertFieldById('edit-block-refresh-auto');
+
+    //Timed refresh
     $this->assertText('Block refresh timer');
+    $this->assertFieldById('edit-block-refresh-timer');
+
+    // Manual refresh.
     $this->assertText('Enable block to be refreshed manually');
+    $this->assertFieldById('edit-block-refresh-manual');
+
+    // Initial refresh.
     $this->assertText('Enable block to be refreshed on page load');
+    $this->assertFieldById('edit-block-refresh-init');
+
+    // Send path arguments option.
     $this->assertText('Send page path arguments to block');
+    $this->assertFieldById('edit-block-refresh-arguments');
+
+    // Panels support
     $this->assertText('Enable block to be used in Panels');
+    $this->assertFieldById('edit-block-refresh-panels');
+
+    // Bypass drupal page cache
     $this->assertText('Bypass Drupal page cache');
+    $this->assertFieldById('edit-block-refresh-bypass-page-cache');
+
+    // External cache max age field.
     $this->assertText('External cache max age');
+    $this->assertFieldById('edit-block-refresh-bypass-external-cache');
+
+    // Change some form values, save, then check if the values are saved to
+  // the block_refresh_settings variable.
+  // We should also reload the form and check if the saved values display OK.
+
+  $edit_auto  = array(
+    'block_refresh_auto' => '0',
+  );
+  $this->drupalPost($configure_path, $edit_auto, t('Save block'));
+
+  $settings = variable_get('block_refresh_settings');
+
   }
+
+
 
 }
