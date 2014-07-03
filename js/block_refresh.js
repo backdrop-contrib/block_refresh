@@ -66,7 +66,6 @@
           var oldh2 = $(element + ' h2.pane-title');
           $(element).html(contents);
           if (panels) {
-            console.log(oldh2);
             if (oldh2.length) {
               $(element + ' h2:first-child').replaceWith(oldh2);
             }
