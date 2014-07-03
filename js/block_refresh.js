@@ -3,15 +3,15 @@
     attach: function(context) {
       $.each(Drupal.settings.block_refresh.settings, function(key, settings) {
         var element = settings.element;
-        setBlockRefresh('#' + element, '.content', settings['auto'], settings['manual'], settings['init'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
+        setBlockRefresh('#' + element, '.content', settings['auto'], settings['manual'], settings['init'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta'], false);
 
         if (settings['panels']) {
           element = element.replace('block-', 'pane-');
-          setBlockRefresh('.' + element, '.pane-content', settings['auto'], settings['manual'], settings['init'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta']);
+          setBlockRefresh('.' + element, '.pane-content', settings['auto'], settings['manual'], settings['init'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta'], true);
         }
       });
 
-      function setBlockRefresh(element, element_content, auto, manual, init, timer, arguments, block, delta) {
+      function setBlockRefresh(element, element_content, auto, manual, init, timer, arguments, block, delta, panels) {
         // Do not bother if no element exists or has already been processed.
         if (!$(element).size() || $(element).hasClass('block-refresh-processed')) {
           return;
@@ -31,19 +31,19 @@
         var path = Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query;
         if (auto && context == document) {
           setInterval(function() {
-            BlockRefreshContent(path, element, element_content);
+            BlockRefreshContent(path, element, element_content, panels);
           }, timer * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
         }
         if (manual) {
           addBlockRefreshButton(element, element_content);
         }
         if (init && context == document) {
-          BlockRefreshContent(path, element, element_content);
+          BlockRefreshContent(path, element, element_content, panels);
         }
 
         $('.block-refresh-button').click(function() {
           $(this).addClass('block-refresh-button-throbbing');
-          BlockRefreshContent(path, element, element_content);
+          BlockRefreshContent(path, element, element_content, panels);
         });
       }
 
@@ -59,14 +59,22 @@
         }
       }
 
-      function BlockRefreshContent(path, element, element_content) {
+      function BlockRefreshContent(path, element, element_content, panels) {
         $.get(path, function(data) {
           var contents = $(data).html();
-          // if this is a panel, preserver panel title.
+          // if this is a panel, preserve panel title.
           var oldh2 = $(element + ' h2.pane-title');
           $(element).html(contents);
-          if (oldh2.length) {
-            $(element + ' h2').replaceWith(oldh2);
+          if (panels) {
+            console.log(oldh2);
+            if (oldh2.length) {
+              $(element + ' h2:first-child').replaceWith(oldh2);
+            }
+            else {
+              $(element + ' h2:first-child').remove();
+            }
+            //panels renders block content in a 'pane-content' wrapper.
+            $(element + ' .content').removeClass('content').addClass('pane-content');
           }
           $(element).removeClass('block-refresh-processed');
           Drupal.attachBehaviors(this);
