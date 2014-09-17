@@ -7,6 +7,13 @@
 
         if (settings['panels']) {
           element = element.replace('block-', 'pane-');
+          // Views blocks in panels need special treatment.
+          // eg an element '#block-views-now-playing-block'
+          // will be rendered as .pane-views.pane-now-playing
+          if (element.search('-views-')) {
+            element = element.replace('-block' , '');
+            element = element.replace('-views-' , '-views.pane-');
+          }
           setBlockRefresh('.' + element, '.pane-content', settings['auto'], settings['manual'], settings['init'], settings['timer'], settings['arguments'], settings['block']['block'], settings['block']['delta'], true);
         }
       });
