@@ -20,7 +20,7 @@
 
       function setBlockRefresh(element, element_content, auto, manual, init, timer, arguments, block, delta, panels) {
         // Do not bother if no element exists or has already been processed.
-        if (!$(element).size() || $(element).hasClass('block-refresh-processed')) {
+        if (!$(element).length || $(element).hasClass('block-refresh-processed')) {
           return;
         }
 
