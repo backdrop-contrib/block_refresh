@@ -230,8 +230,6 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
     $_GET['q'] = '';  $args = arg();
 
   }
-  // Run the block_view hook from the block module
-  $block = module_invoke($module, 'block_view', $delta);
 
   //Bypass page cache if set
   if($settings[$block_id]['bypass_page_cache'] == 1) {
