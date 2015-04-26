@@ -232,12 +232,12 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   }
 
   //Bypass page cache if set
-  if($settings[$block_id]['bypass_page_cache'] == 1) {
+  if(isset($settings[$block_id]['bypass_page_cache']) && $settings[$block_id]['bypass_page_cache'] == 1) {
     $GLOBALS['conf']['cache'] = FALSE;
   }
 
   //Override external cache max age if set
-  if ($settings[$block_id]['bypass_external_cache'] != '') {
+  if (isset($settings[$block_id]['bypass_external_cache']) && $settings[$block_id]['bypass_external_cache'] != '') {
     drupal_add_http_header('Cache-Control', 'public, max-age=' . intval($settings[$block_id]['bypass_external_cache']));
   }
 
