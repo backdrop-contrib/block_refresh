@@ -18,7 +18,7 @@
           // Views blocks in panels need special treatment.
           // eg an element '#block-views-now-playing-block'
           // will be rendered as .pane-views.pane-now-playing
-          if (element.search('-views-')) {
+          if (element.search('-views-') != -1) {
             element = element.replace('-block', '');
             element = element.replace('-views-', '-views.pane-');
           }
