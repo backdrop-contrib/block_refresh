@@ -215,11 +215,12 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   $block_id = drupal_html_id('block-' . $module . '-' . $delta);
   $settings = variable_get('block_refresh_settings', array());
   // If automatic refresh AND manual refresh are both disabled...
-  if (!$settings[$block_id]['auto'] && !$settings[$block_id]['manual'] &&
-      !$settings[$block_id]['init']) {
+  if (empty($settings[$block_id]) || (!$settings[$block_id]['auto'] && !$settings[$block_id]['manual'] &&
+      !$settings[$block_id]['init'])) {
     drupal_not_found();
   }
   //Validate args and get referrering page args from end.  Set as path.
+  // @todo: extract to a method.
   $args = arg();
   if(!empty($args[3]) && $args[0] == 'block_refresh' && $args[1] == $module && $args[2] == $delta) {
     unset($args[0]);
