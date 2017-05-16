@@ -44,7 +44,8 @@
           });
           query = Drupal.settings.block_refresh.query;
         }
-        var path = Drupal.settings.basePath + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query;
+          var prefix = Drupal.settings.block_refresh.cleanUrl ? '' : '?q=';
+        var path = Drupal.settings.basePath + prefix + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query;
         if (auto && context == document) {
           setInterval(function () {
             BlockRefreshContent(path, element, element_content, panels, false);

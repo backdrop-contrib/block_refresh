@@ -23,6 +23,7 @@ function block_refresh_init() {
         'settings' => variable_get('block_refresh_settings', array()),
         'args' => arg(),
         'query' => block_refresh_get_query_as_string(),
+        'cleanUrl' => (bool) variable_get('clean_url', FALSE),
       )
     ), 'setting');
   }
