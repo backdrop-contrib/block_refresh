@@ -16,7 +16,7 @@ Installation
   (admin/structrre/layouts) and Manage Blocks for a layout.
 
 - Configure a block you would like to refresh, and define the settings under
-  the "Block Refresh" fieldset.
+  the "Refresh settings" fieldset.
 
 Documentation
 -------------

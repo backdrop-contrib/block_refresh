@@ -42,7 +42,7 @@ function block_refresh_form_layout_block_configure_form_alter(&$form, $form_stat
     '#type' => 'fieldset',
     '#title' => t('Refresh settings'),
     '#collapsible' => TRUE,
-    //'#collapsed' => TRUE,
+    '#collapsed' => TRUE,
     '#tree' => TRUE,
   );
   if (($form['module']['#value'] == 'system' && $form['delta']['#value'] == 'main')) {
