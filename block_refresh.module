@@ -175,13 +175,13 @@ function block_refresh_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Implements hook_preprocess_block().
  */
-function block_refresh_preprocess_block(&$vars) {
+function block_refresh_preprocess_block(&$variables) {
   //Add refresh link if applicable.
   $settings = variable_get('block_refresh_settings', array());
-  if (isset($settings[$vars['block_html_id']])) {
-    $br_settings = $settings[$vars['block_html_id']];
+  if (isset($settings[$variables['block_html_id']])) {
+    $br_settings = $settings[$variables['block_html_id']];
     if ($br_settings['manual'] == 1) {
-      $vars['title_prefix'][] = array(
+      $variables['title_prefix'][] = array(
         '#type' => 'markup',
         '#markup' => '<div class="block-refresh-button">' . t('Refresh') . '</div>',
       );
@@ -255,15 +255,15 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
  *  A query string representing the arguments.
  */
 function block_refresh_get_query_as_string() {
-  $vars = $_GET;
-  if (!empty($vars['q'])) {
-    unset($vars['q']);
+  $variables = $_GET;
+  if (!empty($variables['q'])) {
+    unset($variables['q']);
   }
-  if (!empty($vars['render'])) {
-    unset($vars['render']);
+  if (!empty($variables['render'])) {
+    unset($variables['render']);
   }
-  if (count($vars) > 0) {
-    $querystring = '?' . http_build_query($vars);
+  if (count($variables) > 0) {
+    $querystring = '?' . http_build_query($variables);
     return $querystring;
   }
   else {
