@@ -62,9 +62,24 @@ function block_refresh_help($path, $arg) {
  * Add a 'Block Refresh' settings fieldset to the block admin form
  */
 function block_refresh_form_block_admin_configure_alter(&$form, $form_state) {
-  $block_id = drupal_html_id('block-' . $form['module']['#value'] . '-' . $form['delta']['#value']);
-  $form = $form + block_refresh_settings_form_elements($block_id);
-  $form['#submit'][] = 'block_refresh_submit';
+  if (($form['module']['#value'] == 'system' && $form['delta']['#value'] == 'main')) {
+    $form['block_refresh'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Block refresh settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#weight' => -1,
+    );
+    $form['block_refresh']['no'] = array(
+      '#type' => 'markup',
+      '#markup' => t('The main page content block cannot be refreshed.'),
+    );
+  }
+  else {
+    $block_id = drupal_html_id('block-' . $form['module']['#value'] . '-' . $form['delta']['#value']);
+    $form = $form + block_refresh_settings_form_elements($block_id);
+    $form['#submit'][] = 'block_refresh_submit';
+  }
 }
 
 /**
