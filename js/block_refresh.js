@@ -48,11 +48,11 @@
         var path = Drupal.settings.basePath + prefix + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query;
         if (auto && context == document) {
           setInterval(function () {
-            BlockRefreshContent(path, element, element_content, panels, false);
+            BlockRefreshContent(path, element, element_content, panels, manual);
           }, timer * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
         }
         if (init && context == document) {
-          BlockRefreshContent(path, element, element_content, panels, false);
+          BlockRefreshContent(path, element, element_content, panels, manual);
         }
       }
 
@@ -72,7 +72,6 @@
           $(this).addClass('block-refresh-button-throbbing');
           BlockRefreshContent(path, element, element_content, panels, manual);
         });
-
       }
 
       function BlockRefreshContent(path, element, element_content, panels, manual) {
