@@ -1,6 +1,7 @@
+type = module
 name = Block Refresh
 description = Allows blocks to automatically refresh their content.
-dependencies[] = block
 package = User interface
-core = 7.x
-files[] = block_refresh.test
+backdrop = 1.x
+
+dependencies[] = block

@@ -1,6 +1,0 @@
-name = Block Refresh Demonstration
-description = A demonstration block for the Block Refresh module.
-dependencies[] = block
-dependencies[] = block_refresh
-package = User interface
-core = 7.x

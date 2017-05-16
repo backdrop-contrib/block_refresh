@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Tests for the Block Refresh module.
+ */
 
 /**
  * Tests functionality of the block refresh module.
@@ -6,15 +10,6 @@
 class BlockRefreshSettingsTestCase extends DrupalWebTestCase {
 
   protected $privileged_user;
-
-  public static function getInfo() {
-    // Note: getInfo() strings are not translated with t().
-    return array(
-      'name' => 'Block Refresh Block config settings form',
-      'description' => 'Ensure block refresh settings appear on the block config page.',
-      'group' => 'Block Refresh',
-    );
-  }
 
   public function setUp() {
     // Enable any modules required for the test. This should be an array of
@@ -85,7 +80,5 @@ class BlockRefreshSettingsTestCase extends DrupalWebTestCase {
   $settings = variable_get('block_refresh_settings');
 
   }
-
-
 
 }

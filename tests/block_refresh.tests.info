@@ -1,0 +1,5 @@
+[BlockRefreshSettingsTestCase]
+name = Block Refresh Block config settings form
+description = Ensure block refresh settings appear on the block config page.
+group = Block Refresh
+file = block_refresh.test
