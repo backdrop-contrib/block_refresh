@@ -3,9 +3,9 @@
  */
 
 (function ($) {
-  Drupal.behaviors.block_refresh = {
+  Backdrop.behaviors.block_refresh = {
     attach: function (context) {
-      $.each(Drupal.settings.block_refresh.settings, function (key, settings) {
+      $.each(Backdrop.settings.block_refresh.settings, function (key, settings) {
         var element = settings.element;
         // Sanity check: do nothing is settings.element is not defined.
         if (typeof element === 'undefined') {
@@ -39,13 +39,13 @@
         args = '';
         query = '';
         if (arguments) {
-          $.each(Drupal.settings.block_refresh.args, function (index, arg) {
+          $.each(Backdrop.settings.block_refresh.args, function (index, arg) {
             args += '/' + arg;
           });
-          query = Drupal.settings.block_refresh.query;
+          query = Backdrop.settings.block_refresh.query;
         }
-          var prefix = Drupal.settings.block_refresh.cleanUrl ? '' : '?q=';
-        var path = Drupal.settings.basePath + prefix + Drupal.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query;
+        var prefix = Backdrop.settings.block_refresh.cleanUrl ? '' : '?q=';
+        var path = Backdrop.settings.basePath + prefix + Backdrop.settings.pathPrefix + 'block_refresh/' + block + '/' + delta + args + query;
         if (auto && context == document) {
           setInterval(function () {
             BlockRefreshContent(path, element, element_content, panels, manual);
@@ -60,7 +60,7 @@
       }
 
       function addBlockRefreshButton(path, element, element_content, panels, manual) {
-        var refresh_link = '<div class="block-refresh-button">' + Drupal.t('Refresh') + '</div>';
+        var refresh_link = '<div class="block-refresh-button">' + Backdrop.t('Refresh') + '</div>';
         // We'll attach the refresh link to the header if it exists...
         if ($(element + ' h2').length) {
           $(element + ' h2').before(refresh_link);
@@ -97,7 +97,7 @@
           if (manual) {
             addBlockRefreshButton(path, element, element_content, panels, manual);
           }
-          Drupal.attachBehaviors();
+          Backdrop.attachBehaviors();
         });
       }
     }
