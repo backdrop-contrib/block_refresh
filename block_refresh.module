@@ -45,7 +45,7 @@ function block_refresh_form_layout_block_configure_form_alter(&$form, $form_stat
     '#collapsed' => TRUE,
     '#tree' => TRUE,
   );
-  if (($form['module']['#value'] == 'system' && $form['delta']['#value'] == 'main')) {
+  if (($form_state['block']->module == 'system' && $form_state['block']->delta == 'main')) {
     $form['block_refresh']['#collapsed'] = FALSE;
     $form['block_refresh']['no'] = array(
       '#type' => 'markup',
@@ -71,17 +71,19 @@ function block_refresh_settings_form_elements(&$form, $form_state) {
     $settings = $form_state['block']->settings['block_refresh'];
   }
 
+  $timer_setting = isset($settings['timer']) ? $settings['timer'] : BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER;
+
   $form['block_refresh']['auto'] = array(
     '#type' => 'checkbox',
     '#title' => t('Refresh automatically'),
-    '#description' => t('When checked, the content of this block will refresh automatically every @timer seconds (defined below).', array('@timer' => $settings['timer'])),
+    '#description' => t('When checked, the content of this block will refresh automatically every @timer seconds (defined below).', array('@timer' => $timer_setting)),
     '#default_value' => isset($settings['auto']) ? $settings['auto'] : BLOCK_REFRESH_DEFAULT_AUTOMATIC,
   );
   $form['block_refresh']['timer'] = array(
     '#type' => 'number',
     '#title' => t('Block refresh interval'),
     '#field_suffix' => t('seconds'),
-    '#default_value' => isset($settings['timer']) ? $settings['timer'] : BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER,
+    '#default_value' => $timer_setting,
     '#states' => array(
       'visible' => array(
         ':input[name="block_refresh[auto]"]' => array('checked' => TRUE),
