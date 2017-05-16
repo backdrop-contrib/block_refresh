@@ -173,23 +173,6 @@ function block_refresh_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
- * Implements hook_preprocess_block().
- */
-function block_refresh_preprocess_block(&$variables) {
-  //Add refresh link if applicable.
-  $settings = variable_get('block_refresh_settings', array());
-  if (isset($settings[$variables['block_html_id']])) {
-    $br_settings = $settings[$variables['block_html_id']];
-    if ($br_settings['manual'] == 1) {
-      $variables['title_prefix'][] = array(
-        '#type' => 'markup',
-        '#markup' => '<div class="block-refresh-button">' . t('Refresh') . '</div>',
-      );
-    }
-  }
-}
-
-/**
  * Private function: Page callback for /block_refresh/[module]/[delta].
  *
  * Displays the block content without any other page information.
@@ -226,8 +209,7 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
     $_GET['q'] = implode('/', $args);
   }
   else {
-    $_GET['q'] = '';
-    $args = arg();
+    $_GET['q'] = '';  $args = arg();
   }
 
   //Bypass page cache if set
@@ -244,8 +226,8 @@ function block_refresh_block_content($module = NULL, $delta = NULL) {
   $renderable_array = _block_get_renderable_array(_block_render_blocks(array($block)));
   $output = backdrop_render($renderable_array);
 
-   // Print out the content of the proceeding call
-   print $output;
+  // Print out the content of the proceeding call
+  print $output;
 }
 
 /**

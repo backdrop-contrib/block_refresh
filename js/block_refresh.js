@@ -51,6 +51,9 @@
             BlockRefreshContent(path, element, element_content, panels, manual);
           }, timer * 1000); // We need to multiply by 1000 because the admin enters a number in seconds,  but the setInterval() function expects milliseconds
         }
+        if (manual) {
+          addBlockRefreshButton(path, element, element_content, panels, true);
+        }
         if (init && context == document) {
           BlockRefreshContent(path, element, element_content, panels, manual);
         }
