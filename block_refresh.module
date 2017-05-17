@@ -90,6 +90,7 @@ function block_refresh_settings_form_elements(&$form, $form_state) {
   $settings = array();
   if (isset($form_state['block']->settings['block_refresh'])) {
     $settings = $form_state['block']->settings['block_refresh'];
+    $form['block_refresh']['#collapsed'] = FALSE;
   }
 
   $timer_setting = isset($settings['timer']) ? $settings['timer'] : BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER;
