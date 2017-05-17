@@ -12,25 +12,46 @@ define('BLOCK_REFRESH_DEFAULT_BYPASS_EXTERNAL_CACHE', ''); // external cache byp
 define('BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER', 120);  // default refreshes every two minutes, if enabled
 
 /**
- * Implements hook_init().
+ * Implements hook_block_view_alter().
  *
- * Calls the jquery to refresh blocks automatically, but only if the blocks
- * exist on the current page and are enabled.
+ * Adds the jquery to refresh blocks automatically.
  */
-function block_refresh_init() {
-  if (user_access('access content')) {
-    backdrop_add_js(backdrop_get_path('module', 'block_refresh') . '/js/block_refresh.js', array('scope' => 'footer'));
-    backdrop_add_css(backdrop_get_path('module', 'block_refresh') . '/css/block_refresh.css');
+function block_refresh_block_view_alter(&$data, $block, $settings = array(), $contexts = array()) {
+  if (array_key_exists('block_refresh', $settings) && !empty($settings['block_refresh'])) {
+    // Add extra settings.
+    $element = backdrop_clean_css_identifier('block-' . $block->module . '-' . $block->delta);
+    $settings['block_refresh']['element'] = $element;
+    $settings['block_refresh']['block'] = array(
+      'block' => $block->module,
+      'dela' => $block->delta,
+    );
+
+    // Add assets to the page.
+    $path = backdrop_get_path('module', 'block_refresh');
+    backdrop_add_js($path . '/js/block_refresh.js', array('scope' => 'footer'));
+    backdrop_add_css($path . '/css/block_refresh.css');
     backdrop_add_js(array(
       'block_refresh' => array(
-        'settings' => variable_get('block_refresh_settings', array()),
+        'settings' => $settings['block_refresh'],
         'args' => arg(),
         'query' => block_refresh_get_query_as_string(),
         'cleanUrl' => (bool) config_get('system.core', 'clean_url'),
       )
     ), 'setting');
+
+    /* @todo Find out why #attached does not work here.
+    $data['#attached'] = array(
+      'css' => array($path . '/css/block_refresh.css'),
+      'js' => array($path . '/js/block_refresh.js' => array('scope' => 'footer')),
+    );
+    $data['#attached']['js'][] = array(
+      'data' => array('block_refresh' => $block_refresh_settings),
+      'type' => 'setting',
+    );
+    */
   }
 }
+
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -146,8 +167,19 @@ function block_refresh_submit($form, &$form_state) {
       $settings = array();
     }
     foreach ($form_state['values']['block_refresh'] as $key => $value) {
-      $settings[$key] = $value;
+      // Flatten all refresh settings into an one-dimensional array.
+      if (is_array($value)) {
+        foreach ($value as $inner_key => $inner_value) {
+          $settings[$inner_key] = $inner_value;
+        }
+        unset($form_state['values']['block_refresh'][$key]);
+        unset($settings[$key]);
+      }
+      else {
+        $settings[$key] = $value;
+      }
     }
+
     $form_state['block']->settings['block_refresh'] = $settings;
   }
 }
@@ -164,17 +196,6 @@ function block_refresh_menu() {
     'type' => MENU_CALLBACK,
   );
   return $items;
-}
-
-/**
- * Implements hook_form_alter().
- */
-function block_refresh_form_alter(&$form, &$form_state, $form_id) {
-  if ($form_id == 'ctools_block_content_type_edit_form') {
-    $block_id = backdrop_html_id('block-' . $form_state['subtype_name']);
-    $form = $form + block_refresh_settings_form_elements($block_id);
-    $form['#submit'][] = 'block_refresh_submit';
-  }
 }
 
 /**
