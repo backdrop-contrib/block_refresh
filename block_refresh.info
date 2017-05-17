@@ -1,7 +1,7 @@
 type = module
 name = Block Refresh
 description = Allows blocks to automatically refresh their content.
-package = User interface
+package = Layout
 backdrop = 1.x
 
 dependencies[] = block
