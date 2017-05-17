@@ -130,7 +130,10 @@ function block_refresh_settings_form_elements(&$form, $form_state) {
  * Handles form submissions on the block configuration page.
  */
 function block_refresh_submit($form, &$form_state) {
-  $settings = $form_state['block']->settings['block_refresh'];
+  $settings = array();
+  if (isset($form_state['block']->settings['block_refresh'])) {
+    $settings = $form_state['block']->settings['block_refresh'];
+  }
 
   if (($form_state['values']['block_refresh']['auto'] == 0) &&
       ($form_state['values']['block_refresh']['manual'] == 0) &&
