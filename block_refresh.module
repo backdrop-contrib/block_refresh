@@ -16,15 +16,14 @@ define('BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER', 120);  // default refreshes ever
  *
  * Adds the jquery to refresh blocks automatically.
  */
-function block_refresh_block_view_alter(&$data, $block, $settings = array(), $contexts = array()) {
-  if (array_key_exists('block_refresh', $settings) && !empty($settings['block_refresh'])) {
+function block_refresh_block_view_alter(&$data, $block) {
+  if (array_key_exists('block_refresh', $block->settings) && !empty($block->settings['block_refresh'])) {
     // Add extra settings.
     $element = backdrop_clean_css_identifier('block-' . $block->module . '-' . $block->delta);
-    $settings['block_refresh']['element'] = $element;
-    $settings['block_refresh']['block'] = array(
-      'block' => $block->module,
-      'dela' => $block->delta,
-    );
+    $block->settings['block_refresh']['element'] = $element;
+    $block->settings['block_refresh']['module'] = $block->module;
+    $block->settings['block_refresh']['delta'] = $block->delta;
+    $block->settings['block_refresh']['uuid'] = $block->uuid;
 
     // Add assets to the page.
     $path = backdrop_get_path('module', 'block_refresh');
@@ -32,7 +31,7 @@ function block_refresh_block_view_alter(&$data, $block, $settings = array(), $co
     backdrop_add_css($path . '/css/block_refresh.css');
     backdrop_add_js(array(
       'block_refresh' => array(
-        'settings' => $settings['block_refresh'],
+        'settings' => $block->settings['block_refresh'],
         'args' => arg(),
         'query' => block_refresh_get_query_as_string(),
         'cleanUrl' => (bool) config_get('system.core', 'clean_url'),
@@ -193,6 +192,7 @@ function block_refresh_menu() {
   $items['block_refresh'] = array(
     'title' => 'Block refresh block content',
     'page callback' => 'block_refresh_block_content',
+    'page arguments' => array(1, 2, 3),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -200,7 +200,7 @@ function block_refresh_menu() {
 }
 
 /**
- * Private function: Page callback for /block_refresh/[module]/[delta].
+ * Page callback for /block_refresh/[module]/[delta].
  *
  * Displays the block content without any other page information.
  *
@@ -213,45 +213,64 @@ function block_refresh_menu() {
  * @return string
  *  Rendered content of the block.
  */
-function block_refresh_block_content($module = NULL, $delta = NULL) {
-  // If there is a request directly to /block_refresh...
-  if (!isset($module) || !isset($delta)) {
+function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL) {
+  // 404 if there is a request directly to /block_refresh or UUID is not set.
+  if (!isset($module) || !isset($delta) || !isset($uuid)) {
     backdrop_not_found();
   }
 
-  $block_id = backdrop_html_id('block-' . $module . '-' . $delta);
-  $settings = variable_get('block_refresh_settings', array());
-  // If automatic refresh AND manual refresh are both disabled...
-  if (empty($settings[$block_id]) || (!$settings[$block_id]['auto'] && !$settings[$block_id]['manual'] &&
-      !$settings[$block_id]['init'])) {
-    backdrop_not_found();
-  }
-  //Validate args and get referrering page args from end.  Set as path.
-  // @todo: extract to a method.
+  // Validate args and get referrering page args from end. Set as path.
+  // @todo: extract to a method?
   $args = arg();
-  if (!empty($args[3]) && $args[0] == 'block_refresh' && $args[1] == $module && $args[2] == $delta) {
+  if (!empty($args[3]) && $args[0] == 'block_refresh' && $args[1] == $module
+      && $args[2] == $delta && $args[3] == $uuid) {
     unset($args[0]);
     unset($args[1]);
     unset($args[2]);
+    unset($args[3]);
     $_GET['q'] = implode('/', $args);
   }
   else {
-    $_GET['q'] = '';  $args = arg();
+    $_GET['q'] = '';
+    $args = arg();
   }
 
-  //Bypass page cache if set
-  if (isset($settings[$block_id]['bypass_page_cache']) && $settings[$block_id]['bypass_page_cache'] == 1) {
+  $menu_item_name = array_shift($args);
+  $menu_item = layout_menu_item_load($menu_item_name);
+  $menu_item = layout_menu_item_load($menu_item_name);
+  // Determine the correct layout to use at this path.
+  $layouts = layout_load_multiple_by_path($menu_item->path);
+
+  $match_found = FALSE;
+  foreach ($layouts as $layout) {
+    if ($layout->disabled) {
+      continue;
+    }
+    // Check access to this layout.
+    if ($layout->checkAccess()) {
+      $match_found = TRUE;
+      break;
+    }
+  }
+
+  $settings = $layout->content[$uuid]->settings['block_refresh'];
+
+  // If automatic refresh AND manual refresh are both disabled...
+  if (empty($settings) || (!$settings['auto'] && !$settings['manual'] && !$settings['init'])) {
+    backdrop_not_found();
+  }
+
+  // Bypass page cache if set.
+  if (isset($settings['bypass_page_cache']) && $settings['bypass_page_cache'] == 1) {
     $GLOBALS['conf']['cache'] = FALSE;
   }
 
-  //Override external cache max age if set
-  if (isset($settings[$block_id]['bypass_external_cache']) && $settings[$block_id]['bypass_external_cache'] != '') {
-    backdrop_add_http_header('Cache-Control', 'public, max-age=' . intval($settings[$block_id]['bypass_external_cache']));
+  // Override external cache max age if set.
+  if (isset($settings['bypass_external_cache']) && $settings['bypass_external_cache'] != '') {
+    backdrop_add_http_header('Cache-Control', 'public, max-age=' . intval($settings['bypass_external_cache']));
   }
 
-  $block  = block_load($module, $delta);
-  $renderable_array = _block_get_renderable_array(_block_render_blocks(array($block)));
-  $output = backdrop_render($renderable_array);
+  $output = $layout->content[$uuid]->getContent();
 
   // Print out the content of the proceeding call
   print $output;

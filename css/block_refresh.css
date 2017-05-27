@@ -1,22 +1,31 @@
 /* Animated throbber */
 html.js .block-refresh-button {
-  background: url('throbber.gif') no-repeat scroll 100% 2px transparent;
-  cursor: pointer;
   height: 18px;
+  position: relative;
   float: right;
-  margin-right: -20px;
   padding-right: 20px;
-  color: blue;
-  text-decoration: underline;
+  cursor: pointer;
 }
 
-html.js .block-refresh-button a {
-  margin-right: 18px;
+html.js .block-refresh-button span.icon {
+  display: inline-block;
+  position: absolute;
+  top: 3px;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  background: url('fa-refresh.png') no-repeat scroll top right transparent;
+  background-size: 16px;
 }
 
-html.js .block-refresh-button-throbbing {
-  background-position: 100% -18px;
+html.js .block-refresh-button-throbbing span.icon {
+  -webkit-animation: spin 2s linear infinite;
+  -moz-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
 }
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
 html.js .block-refresh-hidden {
   display: none;
