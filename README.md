@@ -6,6 +6,10 @@ or some of their blocks to be refreshed, either automatically in a defined
 number of seconds or by providing a link that can be clicked on to refresh
 the block content, or both!
 
+Note: the current working version of this module depends on this core fix:
+  https://github.com/backdrop/backdrop-issues/issues/2713
+
+
 Installation
 ------------
 
