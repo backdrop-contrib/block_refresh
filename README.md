@@ -18,6 +18,10 @@ Installation
 - Configure a block you would like to refresh, and define the settings under
   the "Refresh settings" fieldset.
 
+  Note: The inner element with the class .block-content will be replaced when
+  the block refreshes. If your block does not have this class, the contents of
+  the whole block will be replaced including the block title.
+
 Documentation
 -------------
 
