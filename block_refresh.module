@@ -211,7 +211,7 @@ function block_refresh_menu() {
  *  Identifies which block provided by a given module.
  *
  * @return string
- *  Rendered content of the block.
+ *  Rendered content of the block, or 404 if there was a problem.
  */
 function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL) {
   // 404 if there is a request directly to /block_refresh or UUID is not set.
@@ -237,10 +237,14 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
 
   $menu_item_name = array_shift($args);
   $menu_item = layout_menu_item_load($menu_item_name);
-  $menu_item = layout_menu_item_load($menu_item_name);
+  if (!$menu_item) {
+    backdrop_not_found();
+  }
+
   // Determine the correct layout to use at this path.
   $layouts = layout_load_multiple_by_path($menu_item->path);
 
+  // Load the current layout for tasks below.
   $match_found = FALSE;
   foreach ($layouts as $layout) {
     if ($layout->disabled) {
@@ -253,7 +257,10 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
     }
   }
 
-  $settings = $layout->content[$uuid]->settings['block_refresh'];
+  $settings = FALSE;
+  if (isset($layout->content[$uuid])) {
+    $settings = $layout->content[$uuid]->settings['block_refresh'];
+  }
 
   // If automatic refresh AND manual refresh are both disabled...
   if (empty($settings) || (!$settings['auto'] && !$settings['manual'] && !$settings['init'])) {
