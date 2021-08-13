@@ -245,10 +245,10 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
     backdrop_add_http_header('Cache-Control', 'public, max-age=' . intval($settings['bypass_external_cache']));
   }
 
-  $output = $layout->content[$uuid]->getContent();
-
-  // Print out the content of the proceeding call
-  print $output;
+  if (isset($layout->content[$uuid])) {
+    $output = $layout->content[$uuid]->getContent();
+    print $output;
+  }
 }
 
 /**
