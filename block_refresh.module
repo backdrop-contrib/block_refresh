@@ -225,31 +225,29 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
   $menu_router_item = menu_get_item();
   $layout = layout_get_layout_by_path(NULL, $menu_router_item);
 
+  $settings = FALSE;
   if (isset($layout->content[$uuid])) {
     $settings = $layout->content[$uuid]->settings['block_refresh'];
+  }
 
-    // If automatic refresh AND manual refresh are both disabled...
-    if (empty($settings) || (!$settings['auto'] && !$settings['manual'] && !$settings['init'])) {
-      backdrop_not_found();
-    }
+  // If automatic refresh AND manual refresh are both disabled...
+  if (empty($settings) || (!$settings['auto'] && !$settings['manual'] && !$settings['init'])) {
+    backdrop_not_found();
+  }
 
-    // Bypass page cache if set.
-    if (isset($settings['bypass_page_cache']) && $settings['bypass_page_cache'] == 1) {
-      $GLOBALS['conf']['cache'] = FALSE;
-    }
+  // Bypass page cache if set.
+  if (isset($settings['bypass_page_cache']) && $settings['bypass_page_cache'] == 1) {
+    $GLOBALS['conf']['cache'] = FALSE;
+  }
 
-    // Override external cache max age if set.
-    if (isset($settings['bypass_external_cache']) && $settings['bypass_external_cache'] != '') {
-      backdrop_add_http_header('Cache-Control', 'public, max-age=' . intval($settings['bypass_external_cache']));
-    }
+  // Override external cache max age if set.
+  if (isset($settings['bypass_external_cache']) && $settings['bypass_external_cache'] != '') {
+    backdrop_add_http_header('Cache-Control', 'public, max-age=' . intval($settings['bypass_external_cache']));
+  }
 
+  if (isset($layout->content[$uuid])) {
     $output = $layout->content[$uuid]->getContent();
     print $output;
-  }
-  else {
-    $message = 'A block with UUID :uuid was not found in the active layout.';
-    $replacements = array(':uuid' => $uuid);
-    watchdog('block_refresh', $message, $replacements, WATCHDOG_WARNING);
   }
 }
 
