@@ -211,19 +211,18 @@ function block_refresh_menu() {
  *  Identifies which block provided by a given module.
  *
  * @return string
- *  Rendered content of the block, or 404 if there was a problem.
+ *  Rendered content of the block.
  */
 function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL) {
-  // 404 if there is a request directly to /block_refresh or UUID is not set.
+  // 404 if there is a request directly to /block_refresh without specifics.
   if (!isset($module) || !isset($delta) || !isset($uuid)) {
     backdrop_not_found();
   }
 
   // Validate args and get referrering page args from end. Set as path.
-  // @todo: extract to a method?
+  // @todo: pass these along as a query string instead.
   $args = arg();
-  if (!empty($args[3]) && $args[0] == 'block_refresh' && $args[1] == $module
-      && $args[2] == $delta && $args[3] == $uuid) {
+  if ($args[0] == 'block_refresh' && $args[1] == $module && $args[2] == $delta && $args[3] == $uuid) {
     unset($args[0]);
     unset($args[1]);
     unset($args[2]);
@@ -235,35 +234,22 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
     $args = arg();
   }
 
-  $menu_item_name = array_shift($args);
-  $menu_item = layout_menu_item_load($menu_item_name);
-  if (!$menu_item) {
+  $path = implode('/', $args);
+  $menu_router_item = menu_get_item($path);
+  $layout = layout_get_layout_by_path(NULL, $menu_router_item);
+
+  // If there are no block refesh settings, don't refresh.
+  if (!$layout || !isset($layout->content[$uuid]) ||
+    !isset($layout->content[$uuid]->settings['block_refresh']) ||
+    empty($layout->content[$uuid]->settings['block_refresh'])) {
     backdrop_not_found();
   }
 
-  // Determine the correct layout to use at this path.
-  $layouts = layout_load_multiple_by_path($menu_item->path);
+  // Get block refresh settings.
+  $settings = $layout->content[$uuid]->settings['block_refresh'];
 
-  // Load the current layout for tasks below.
-  $match_found = FALSE;
-  foreach ($layouts as $layout) {
-    if ($layout->disabled) {
-      continue;
-    }
-    // Check access to this layout.
-    if ($layout->checkAccess()) {
-      $match_found = TRUE;
-      break;
-    }
-  }
-
-  $settings = FALSE;
-  if (isset($layout->content[$uuid])) {
-    $settings = $layout->content[$uuid]->settings['block_refresh'];
-  }
-
-  // If automatic refresh AND manual refresh are both disabled...
-  if (empty($settings) || (!$settings['auto'] && !$settings['manual'] && !$settings['init'])) {
+  // If all refresh optons are disabled, don't refresh.
+  if (!$settings['auto'] && !$settings['manual'] && !$settings['init']) {
     backdrop_not_found();
   }
 
@@ -277,10 +263,23 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
     backdrop_add_http_header('Cache-Control', 'public, max-age=' . intval($settings['bypass_external_cache']));
   }
 
-  $output = $layout->content[$uuid]->getContent();
+  // Add layout contexts to block.
+  $layout_contexts = $layout->getContexts();
+  $block = $layout->content[$uuid];
+  $has_contexts = TRUE;
+  $required_contexts = $block->getRequiredContexts();
+  if ($required_contexts) {
+    $has_contexts = $layout->hasContexts($required_contexts);
+    if ($has_contexts) {
+      $block->setContexts($layout_contexts);
+    }
+  }
+  // get block content.
+  $block->prepare();
+  $output = $block->getContent();
 
-  // Print out the content of the proceeding call
-  print $output;
+  // Return only the content of the block.
+  print backdrop_render($output);
 }
 
 /**
