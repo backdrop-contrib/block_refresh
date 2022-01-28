@@ -200,7 +200,7 @@ function block_refresh_menu() {
 }
 
 /**
- * Page callback for /block_refresh/[module]/[delta]/[uuid].
+ * Page callback for /block_refresh/[module]/[delta].
  *
  * Displays the block content without any other page information.
  *
@@ -209,9 +209,6 @@ function block_refresh_menu() {
  *
  * @param string $delta
  *  Identifies which block provided by a given module.
- *
- * @param string $uuid
- *  Identifies which instance of the block is to be refreshed.
  *
  * @return string
  *  Rendered content of the block, or 404 if there was a problem.
@@ -222,8 +219,43 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
     backdrop_not_found();
   }
 
-  $menu_router_item = menu_get_item();
-  $layout = layout_get_layout_by_path(NULL, $menu_router_item);
+  // Validate args and get referrering page args from end. Set as path.
+  // @todo: extract to a method?
+  $args = arg();
+  if (!empty($args[3]) && $args[0] == 'block_refresh' && $args[1] == $module
+      && $args[2] == $delta && $args[3] == $uuid) {
+    unset($args[0]);
+    unset($args[1]);
+    unset($args[2]);
+    unset($args[3]);
+    $_GET['q'] = implode('/', $args);
+  }
+  else {
+    $_GET['q'] = '';
+    $args = arg();
+  }
+
+  $menu_item_name = array_shift($args);
+  $menu_item = layout_menu_item_load($menu_item_name);
+  if (!$menu_item) {
+    backdrop_not_found();
+  }
+
+  // Determine the correct layout to use at this path.
+  $layouts = layout_load_multiple_by_path($menu_item->path);
+
+  // Load the current layout for tasks below.
+  $match_found = FALSE;
+  foreach ($layouts as $layout) {
+    if ($layout->disabled) {
+      continue;
+    }
+    // Check access to this layout.
+    if ($layout->checkAccess()) {
+      $match_found = TRUE;
+      break;
+    }
+  }
 
   $settings = FALSE;
   if (isset($layout->content[$uuid])) {
