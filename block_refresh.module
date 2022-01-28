@@ -19,8 +19,8 @@ define('BLOCK_REFRESH_DEFAULT_AUTOMATIC_TIMER', 120);  // default refreshes ever
 function block_refresh_block_view_alter(&$data, $block) {
   if (array_key_exists('block_refresh', $block->settings) && !empty($block->settings['block_refresh'])) {
     // Add extra settings.
-    $element = backdrop_clean_css_identifier('block-' . $block->module . '-' . $block->delta);
-    $block->settings['block_refresh']['element'] = $element;
+    $class_name = backdrop_html_class('block-' . $block->module . '-' . (isset($block->childDelta) ? $block->childDelta : $block->delta));
+    $block->settings['block_refresh']['element'] = $class_name;
     $block->settings['block_refresh']['module'] = $block->module;
     $block->settings['block_refresh']['delta'] = $block->delta;
     $block->settings['block_refresh']['uuid'] = $block->uuid;
