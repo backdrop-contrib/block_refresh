@@ -280,6 +280,7 @@ function block_refresh_block_content($module = NULL, $delta = NULL, $uuid = NULL
 
   // Return only the content of the block.
   print backdrop_render($output);
+  backdrop_exit();
 }
 
 /**
